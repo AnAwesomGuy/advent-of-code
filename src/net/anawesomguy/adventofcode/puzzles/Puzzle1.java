@@ -4,13 +4,13 @@ import net.anawesomguy.adventofcode.util.Utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class Puzzle1 {
-    public static final URL INPUT_URL = Utils.newURL("https://adventofcode.com/2023/day/1/input");
+    public static final URI INPUT_URL = Utils.newURI("https://adventofcode.com/2023/day/1/input");
     private static final Map<String, String> WORDS_TO_DIGITS = Map.of(
         "one", "1",
         "two", "2",

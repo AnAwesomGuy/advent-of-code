@@ -3,25 +3,35 @@ package net.anawesomguy.adventofcode.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public final class Utils {
-    public static BufferedReader getReader(final URL inputURL) {
+    public static BufferedReader getReader(final URI inputURI) {
         try {
-            final HttpURLConnection con = (HttpURLConnection)inputURL.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("Cookie", "session=" + System.getenv("ADVENT_OF_CODE_SESSION"));
-            return new BufferedReader(new InputStreamReader(con.getInputStream()));
-        } catch (IOException e) {
+            return new BufferedReader(
+                new InputStreamReader(
+                    HttpClient.newHttpClient().send(
+                        HttpRequest.newBuilder(inputURI)
+                                   .headers("Cookie",
+                                            "session=" + System.getenv("ADVENT_OF_CODE_SESSION"))
+                                   .GET().build(),
+                        HttpResponse.BodyHandlers.ofInputStream()
+                    ).body()
+                )
+            );
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static URL newURL(String spec) {
+    public static URI newURI(final String spec) {
         try {
-            return new URL(spec);
-        } catch (IOException e) {
+            return new URI(spec);
+        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

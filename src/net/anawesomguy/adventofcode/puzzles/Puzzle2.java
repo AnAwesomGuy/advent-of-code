@@ -4,13 +4,13 @@ import net.anawesomguy.adventofcode.util.Utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class Puzzle2 {
-    public static final URL INPUT_URL = Utils.newURL("https://adventofcode.com/2023/day/2/input");
+    public static final URI INPUT_URL = Utils.newURI("https://adventofcode.com/2023/day/2/input");
     public static final int MAX_REDS = 12, MAX_GREENS = 13, MAX_BLUES = 14;
 
     public static void main(final String... args) {
@@ -20,30 +20,43 @@ public final class Puzzle2 {
     }
 
     public static Utils.PuzzleIntPair solve() {
-        int result = 0;
+        int result1 = 0, result2 = 0;
         try (final BufferedReader br = Utils.getReader(INPUT_URL)) {
-            String inputLine;
-            while ((inputLine = br.readLine()) != null) {
-                Game game = Game.parse(inputLine);
-                for (CubeSet cubeSet : game.rolls())
-                    if (cubeSet.red() >= MAX_REDS ||
-                        cubeSet.green() >= MAX_GREENS ||
-                        cubeSet.blue() >= MAX_BLUES
-                    ) {
-                        System.out.println(game);
-                        result += game.gameNum();
-                        break;
-                    }
+            Game game;
+            while ((game = Game.parse(br.readLine())) != null) {
+                boolean possible = true;
+                int highestRed = 1, highestGreen = 1, highestBlue = 1;
+                for (CubeSet cubeSet : game.rolls()) {
+                    // first half
+                    if (cubeSet.red() > MAX_REDS ||
+                        cubeSet.green() > MAX_GREENS ||
+                        cubeSet.blue() > MAX_BLUES
+                    ) possible = false;
+
+                    // second half
+                    if (cubeSet.red() > highestRed)
+                        highestRed = cubeSet.red();
+                    if (cubeSet.green() > highestGreen)
+                        highestGreen = cubeSet.green();
+                    if (cubeSet.blue() > highestBlue)
+                        highestBlue = cubeSet.blue();
+                }
+                if (possible)
+                    result1 += game.gameNum();
+
+                result2 += highestRed * highestGreen * highestBlue;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Utils.PuzzleIntPair(result, 0); // zero bcuz i havent finished first half
+        return new Utils.PuzzleIntPair(result1, result2);
     }
 
     public record CubeSet(int red, int green, int blue) {
         private static final Pattern CUBES_PATTERN = Pattern.compile("(\\d+)(red|green|blue)");
         public static CubeSet parse(String cubeSet) {
+            if (cubeSet == null)
+                return null;
             int red = 0, green = 0, blue = 0;
             String[] colors = cubeSet.toLowerCase().replace(" ", "").split(",");
             if (colors.length > 3 || colors.length < 1)
@@ -66,17 +79,21 @@ public final class Puzzle2 {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            if (red != 0) {
+            final boolean hasRed = red != 0,
+                          hasBlue = blue != 0;
+            if (hasRed) {
                 builder.append(red);
                 builder.append(" red");
             }
-            if (blue != 0) {
-                builder.append(", ");
+            if (hasBlue) {
+                if (hasRed)
+                    builder.append(", ");
                 builder.append(blue);
                 builder.append(" blue");
             }
             if (green != 0) {
-                builder.append(", ");
+                if (hasBlue || hasRed)
+                    builder.append(", ");
                 builder.append(green);
                 builder.append(" green");
             }
@@ -86,11 +103,12 @@ public final class Puzzle2 {
 
     public record Game(int gameNum, CubeSet... rolls) {
         public static Game parse(String game) {
-            int index = game.indexOf(':');
-            final int gameNum = Integer.parseInt(game.substring(5, index));
-            game = game.substring(index + 1);
+            if (game == null)
+                return null;
+            String[] gameAndRounds = game.split(":", 2);
+            final int gameNum = Integer.parseInt(gameAndRounds[0].substring(5));
             return new Game(gameNum,
-                Arrays.stream(game.split(";"))
+                Arrays.stream(gameAndRounds[1].split(";"))
                       .map(CubeSet::parse)
                       .toArray(CubeSet[]::new)
             );
