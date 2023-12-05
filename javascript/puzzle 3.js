@@ -10,36 +10,36 @@ fetch('https://adventofcode.com/2023/day/3/input')
  * @param {String} data The input for the puzzle, a 140x140 square of text.
  */
 function solveFirstHalf(data) {
+	console.log("Solving first half!")
+	let result = 0
 	let lineNum = 0
 	let positions = Array.from(Array(140), () => Array(140)) // 2d array (y, x) (cuz thats easier)
 	let lines = data.split('\n');
 	lines.pop()
-	lines.forEach(line => { // last line is blank
-		lineNum++
+	lines.forEach((line, lineNum) => { // last line is blank
 		let number = ''
 		for (let charNum = 0; charNum < line.length; charNum++) {
 			let c = line[charNum]
 			if (/\d/.test(c))
 				number += c
 			else if (number) { // empty string is falsey
-				console.log(charNum - number.length)
-				console.log(number)
 				positions[lineNum][charNum - number.length] = number
 				number = ''
-			} else if (/[-*+=@#$%&/]/.test(c))
-				positions[lineNum][charNum + (number = '')/*reset number*/] = c
+			} else if (/[-*+=@#$%&/\d]/.test(c))
+				positions[lineNum][charNum] = c
 		}
 	})
-
-	for (let y = 0; y < positions.length; y++) {
+	console.log("Finished mapping all numbers and symbols.")
+	for (let y = 0; y < positions.length; y++) { // using this kind of loop so i can skip over unneeded stuff
 		let column = positions[y]
-		for (let x = 0; x < line.length; x++) {
+		for (let x = 0; x < column.length; x++) { // same here
 			let number = column[y]
 			if (!/^\d+$/.test(number))
 				continue
 			let hasSurrounding = false
 			let startX = --x
 			let searchX = startX + number.length + 2
+			let middleY = y
 			let searchY = --y + 3
 			let fixVars = () => {
 				if (y < 0)
@@ -53,22 +53,33 @@ function solveFirstHalf(data) {
 			}
 			let incrementOrReset = () => {
 				if (x < searchX)
-					x++
+					if (y === middleY)
+						x = searchX - 1
+					else
+						x++
 				else {
 					x = startX
 					y++
 				}
 			}
-			for (fixVars(); x < searchX && y < searchY; incrementOrReset()) {
-				console.log(positions[x][y])
+			for (fixVars(); x < searchX || y < searchY; incrementOrReset()) {
+				let symbol = positions[y][x]
+				if (symbol) {
+					result += parseInt(number)
+					break
+				}
 			}
 		}
 	}
+	console.log("Finished solving first half!")
+	return result
 }
 
 /**
- * @param {String} data
+ * @param {String} data The input for the puzzle, a 140x140 square of text.
  */
 function solveSecondHalf(data) {
+	console.log("Solving second half!")
+	console.log("Finished solving second half!")
 	return
 }
