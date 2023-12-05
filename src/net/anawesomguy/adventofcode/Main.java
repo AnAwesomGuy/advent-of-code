@@ -6,6 +6,9 @@ public final class Main {
     public static void main(final String... args) {
         Puzzle1.main();
         System.out.println();
+        Puzzle2.main();
+        System.out.println();
+        // puzzle 3 is in js, see the javascript folder in root
     }
 
     private Main() {
