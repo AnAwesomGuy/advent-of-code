@@ -36,39 +36,24 @@ function solveFirstHalf(data) {
 			let number = column[y]
 			if (!/^\d+$/.test(number))
 				continue
-			let hasSurrounding = false
-			let startX = --x
-			let searchX = startX + number.length + 2
-			let middleY = y
-			let searchY = --y + 3
-			let fixVars = () => {
-				if (y < 0)
-					y = 0
-				if (searchY >= positions.length)
-					searchY = positions.length
-				if (x < 0)
-					x = 0
-				if (searchX >= positions.length)
-					searchX = positions.length
-			}
-			let incrementOrReset = () => {
-				if (x < searchX)
-					if (y === middleY)
-						x = searchX - 1
-					else
-						x++
-				else {
-					x = startX
-					y++
+			let endX = x + number.length > 137 ? 139 : x + number.length + 1 // basically x + number.length + 1 but it wont pass 139 (for the array)
+			let endY = y > 137 ? 139 : y + 1 // basically y + 1 but it wont pass 139 (for the array)
+			searchY:
+			for (let searchY = y < 2 ? 0 : y - 1; searchY < endY; searchY++) {
+				for (let searchX = x < 2 ? 0 : x - 1; // x - 1 but it wont go under 0
+					 searchX < endX;
+					 searchY === y && searchX == x ?
+						 searchX += number.length :
+						 searchX++
+				) {
+					let symbol = positions[searchY][searchX]
+					if (symbol) {
+						result += parseInt(number)
+						break searchY
+					}
 				}
 			}
-			for (fixVars(); x < searchX || y < searchY; incrementOrReset()) {
-				let symbol = positions[y][x]
-				if (symbol) {
-					result += parseInt(number)
-					break
-				}
-			}
+			x += number.length
 		}
 	}
 	console.log("Finished solving first half!")
