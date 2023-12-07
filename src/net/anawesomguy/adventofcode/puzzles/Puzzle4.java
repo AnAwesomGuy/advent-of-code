@@ -32,7 +32,7 @@ public final class Puzzle4 {
             while ((inputLine = br.readLine()) != null) {
                 Card card = Card.parse(inputLine);
                 result1 += card.getWinning();
-                int frequency = copies.computeIfAbsent(card.cardNum(), AtomicInteger::new).get();
+                int frequency = copies.computeIfAbsent(card.cardNum(), integer -> new AtomicInteger()).get() + 1;
                 result2 += frequency;
                 for (int i = card.cardNum() + 1; i <= card.cardNum() + card.matchCount(); i++) {
                     copies.computeIfAbsent(i, integer -> new AtomicInteger()).getAndAdd(frequency);
@@ -41,7 +41,7 @@ public final class Puzzle4 {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Utils.PuzzleIntPair(result1, result2); // 5921508
+        return new Utils.PuzzleIntPair(result1, result2);
     }
 
     public static final class Card {
