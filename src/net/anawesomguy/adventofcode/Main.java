@@ -9,6 +9,8 @@ public final class Main {
         Puzzle2.main();
         System.out.println();
         // puzzle 3 is in js, see the javascript folder in root
+        Puzzle4.main();
+        System.out.println();
     }
 
     private Main() {

@@ -36,6 +36,11 @@ public final class Utils {
         }
     }
 
+    public static <T> T log(T obj) {
+        System.out.println(obj);
+        return obj;
+    }
+
     public record PuzzleIntPair(int firstHalf, int secondHalf) {}
 
     private Utils() {
