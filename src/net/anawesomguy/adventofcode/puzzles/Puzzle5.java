@@ -19,6 +19,7 @@ public final class Puzzle5 {
     public static void main(final String... args) {
         Utils.PuzzlePair answer = solve();
         System.out.println("Answer for first half of puzzle 5: " + answer.firstHalf());
+        // second half takes like 90 min lol
         System.out.println("Answer for second half of puzzle 5: " + answer.secondHalf());
     }
 
