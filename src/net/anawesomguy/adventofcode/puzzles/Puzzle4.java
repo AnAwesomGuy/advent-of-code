@@ -19,12 +19,12 @@ public final class Puzzle4 {
     public static final URI INPUT_URL = Utils.newURI("https://adventofcode.com/2023/day/4/input");
 
     public static void main(final String... args) {
-        Utils.PuzzleIntPair answer = solve();
+        Utils.PuzzlePair answer = solve();
         System.out.println("Answer for first half of puzzle 4: " + answer.firstHalf());
         System.out.println("Answer for second half of puzzle 4: " + answer.secondHalf());
     }
 
-    public static Utils.PuzzleIntPair solve() {
+    public static Utils.PuzzlePair solve() {
         int result1 = 0, result2 = 0;
         final Map<Integer, AtomicInteger> copies = new HashMap<>(200);
         try (final BufferedReader br = Utils.getReader(INPUT_URL)) {
@@ -41,7 +41,7 @@ public final class Puzzle4 {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Utils.PuzzleIntPair(result1, result2);
+        return new Utils.PuzzlePair(result1, result2);
     }
 
     public static final class Card {

@@ -14,12 +14,12 @@ public final class Puzzle2 {
     public static final int MAX_REDS = 12, MAX_GREENS = 13, MAX_BLUES = 14;
 
     public static void main(final String... args) {
-        Utils.PuzzleIntPair answer = solve();
+        Utils.PuzzlePair answer = solve();
         System.out.println("Answer for first half of puzzle 2: " + answer.firstHalf());
         System.out.println("Answer for second half of puzzle 2: " + answer.secondHalf());
     }
 
-    public static Utils.PuzzleIntPair solve() {
+    public static Utils.PuzzlePair solve() {
         int result1 = 0, result2 = 0;
         try (final BufferedReader br = Utils.getReader(INPUT_URL)) {
             Game game;
@@ -49,7 +49,7 @@ public final class Puzzle2 {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Utils.PuzzleIntPair(result1, result2);
+        return new Utils.PuzzlePair(result1, result2);
     }
 
     public record CubeSet(int red, int green, int blue) {

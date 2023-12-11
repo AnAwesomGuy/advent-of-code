@@ -1,8 +1,8 @@
 package net.anawesomguy.adventofcode.util;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -10,10 +10,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public final class Utils {
+    private static final String DEBUG_TEST_INPUT = null; // i can change this when debugging
+
     public static BufferedReader getReader(final URI inputURI) {
         try {
+            //noinspection ConstantValue (ill change the value when i want)
             return new BufferedReader(
-                new InputStreamReader(
+                DEBUG_TEST_INPUT == null ? new InputStreamReader(
                     HttpClient.newHttpClient().send(
                         HttpRequest.newBuilder(inputURI)
                                    .headers("Cookie",
@@ -21,9 +24,9 @@ public final class Utils {
                                    .GET().build(),
                         HttpResponse.BodyHandlers.ofInputStream()
                     ).body()
-                )
+                ) : new StringReader(DEBUG_TEST_INPUT)
             );
-        } catch (IOException | InterruptedException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
@@ -41,7 +44,7 @@ public final class Utils {
         return obj;
     }
 
-    public record PuzzleIntPair(int firstHalf, int secondHalf) {}
+    public record PuzzlePair(long firstHalf, long secondHalf) {}
 
     private Utils() {
         throw new AssertionError("Cannot instantiate Utils!");

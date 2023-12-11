@@ -24,12 +24,12 @@ public final class Puzzle1 {
     );
 
     public static void main(final String... args) {
-        Utils.PuzzleIntPair answer = solve();
+        Utils.PuzzlePair answer = solve();
         System.out.println("Answer for first half of puzzle 1: " + answer.firstHalf());
         System.out.println("Answer for second half of puzzle 1: " + answer.secondHalf());
     }
 
-    public static Utils.PuzzleIntPair solve() {
+    public static Utils.PuzzlePair solve() {
         int result1 = 0, result2 = 0; // result1 = first half, result2 = second half
         try (final BufferedReader br = Utils.getReader(INPUT_URL)) {
             String inputLine;
@@ -40,7 +40,7 @@ public final class Puzzle1 {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Utils.PuzzleIntPair(result1, result2);
+        return new Utils.PuzzlePair(result1, result2);
     }
 
     /**
