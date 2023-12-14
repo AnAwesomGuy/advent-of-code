@@ -11,6 +11,12 @@ public final class Main {
         // puzzle 3 is in js, see the javascript folder in root
         Puzzle4.main();
         System.out.println();
+        Puzzle5.main();
+        System.out.println();
+        Puzzle6.main();
+        System.out.println();
+        Puzzle7.main();
+        System.out.println();
     }
 
     private Main() {
