@@ -38,13 +38,13 @@ public final class Puzzle7 {
             Hand hand = hands1.get(i);
             result1 += (long)hand.bid() * (i + 1);
         }
-        System.out.println(hands1);
         hands2.sort(null);
         for (int i = 0; i < hands2.size(); i++) {
             Hand hand = hands2.get(i);
             result2 += (long)hand.bid() * (i + 1);
+            if (hand.hand().contains("J"))
+                System.out.println(hand);
         }
-        System.out.println(hands2);
 
         return new Utils.PuzzlePair(result1, result2);
     }
@@ -124,6 +124,8 @@ public final class Puzzle7 {
                                 yield ALL_SAME;
                             if (occurrences > mostOccurrences)
                                 mostOccurrences = occurrences;
+                            if (mostOccurrences == 2 && set.size() == 2)
+                                yield FULL_HOUSE;
                         }
                         yield switch (mostOccurrences) {
                             case 1 -> ONE_PAIR;
@@ -189,6 +191,6 @@ public final class Puzzle7 {
     }
 
     private Puzzle7() {
-        throw new AssertionError("Cannot instantiate Puzzle6!");
+        throw new AssertionError("Cannot instantiate Puzzle7!");
     }
 }
