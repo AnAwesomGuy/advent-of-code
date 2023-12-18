@@ -1,3 +1,6 @@
+// THIS IS UNFINISHED, IT DOESNT WORK
+// I JUST DONT FEEL LIKE CONTINUING
+
 // if you run this in Chrome and are already signed
 // into AOC, the session cookie shouldnt be needed
 fetch('https://adventofcode.com/2023/day/3/input')
@@ -20,13 +23,18 @@ function solveFirstHalf(data) {
 		let number = ''
 		for (let charNum = 0; charNum < line.length; charNum++) {
 			let c = line[charNum]
-			if (/\d/.test(c))
-				number += c
-			else if (number) { // empty string is falsey
+			let clearNum = () => {
 				positions[lineNum][charNum - number.length] = number
 				number = ''
-			} else if (/[-*+=@#$%&/\d]/.test(c))
+			}
+			if (/\d/.test(c)) {
+				positions[lineNum][charNum] = (number += c)
+			} else if (/[-*+=@#$%&/]/.test(c)) {
+				if (number)
+					clearNum()
 				positions[lineNum][charNum] = c
+			} else if (number) // empty string is falsey
+				clearNum()
 		}
 	})
 	console.log("Finished mapping all numbers and symbols.")
@@ -42,8 +50,8 @@ function solveFirstHalf(data) {
 			for (let searchY = y < 2 ? 0 : y - 1; searchY < endY; searchY++) {
 				for (let searchX = x < 2 ? 0 : x - 1; // x - 1 but it wont go under 0
 					 searchX < endX;
-					 searchY === y && searchX == x ?
-						 searchX += number.length :
+					 searchY === y && searchX === x ?
+						 searchX += number.length : // skip over the number itself
 						 searchX++
 				) {
 					let symbol = positions[searchY][searchX]
@@ -53,10 +61,10 @@ function solveFirstHalf(data) {
 					}
 				}
 			}
-			x += number.length
+			x += number.length // skip to after the number
 		}
 	}
-	console.log("Finished solving first half!")
+	console.log("Finished solving first half: " + result + ".")
 	return result
 }
 

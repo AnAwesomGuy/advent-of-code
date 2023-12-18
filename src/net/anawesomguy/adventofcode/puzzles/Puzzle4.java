@@ -67,7 +67,7 @@ public final class Puzzle4 {
         private final List<String> numbers;
         private List<String> matches;
 
-        private Card(int cardNum, List<String> winning, List<String> numbers) {
+        Card(int cardNum, List<String> winning, List<String> numbers) {
             this.cardNum = cardNum;
             this.winning = winning;
             this.numbers = numbers;
@@ -92,10 +92,8 @@ public final class Puzzle4 {
         public int getWinning() {
             if (matches == null) {
                 List<String> list = new ArrayList<>(numbers);
-                if (list.retainAll(winning)) {
-                    matches = list;
-                    return 1 << list.size(); // 1 * 2 ^ matches.size()
-                }
+                if (list.retainAll(winning))
+                    return 1 << (matches = list).size(); // 1 * 2 ^ matches.size()
             } else return 1 << matches.size(); // 1 * 2 ^ matches.size()
             return 0;
         }
@@ -120,7 +118,28 @@ public final class Puzzle4 {
 
         @Override
         public int hashCode() {
-            return 31 * (31 * (cardNum ^ (cardNum >>> 16)) + winning.hashCode()) + numbers.hashCode();
+            return 31 * (31 * cardNum + (31 * winning.hashCode())) + numbers.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("Card ");
+            final String card = String.valueOf(cardNum);
+            sb.append(" ".repeat(Math.max(0, 3 - card.length())));
+            sb.append(cardNum);
+            sb.append(": ");
+            for (final String str : winning) {
+                if (str.length() == 1)
+                    sb.append(' ');
+                sb.append(str);
+            }
+            sb.append(" | ");
+            for (final String str : numbers) {
+                if (str.length() == 1)
+                    sb.append(' ');
+                sb.append(str);
+            }
+            return sb.toString();
         }
     }
 

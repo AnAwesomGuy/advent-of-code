@@ -8,7 +8,7 @@ public final class Main {
         System.out.println();
         Puzzle2.main();
         System.out.println();
-        // puzzle 3 is in js, see the javascript folder in root
+        // puzzle 3 is in js, see the javascript folder in root (its unfinished)
         Puzzle4.main();
         System.out.println();
         Puzzle5.main();
