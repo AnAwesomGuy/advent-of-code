@@ -1,7 +1,6 @@
 package net.anawesomguy.adventofcode.year2024;
 
 import net.anawesomguy.adventofcode.AdventOfCode;
-import net.anawesomguy.adventofcode.AdventOfCode.Submission;
 
 public final class AOC2024 {
     private AOC2024() {
@@ -12,6 +11,6 @@ public final class AOC2024 {
 
     public static void main(String... args) {
         AdventOfCode.addPuzzles(YEAR_NUM, Day1::new);
-        AdventOfCode.solvePuzzle(YEAR_NUM, 1, Submission.NONE);
+        AdventOfCode.solvePuzzle(YEAR_NUM, 1);
     }
 }

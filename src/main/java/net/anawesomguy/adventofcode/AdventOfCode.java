@@ -73,12 +73,12 @@ public final class AdventOfCode {
             for (int day = 0; day < puzzles.length; day++) {
                 PuzzleSupplier puzzle = puzzles[day];
                 if (puzzle != null)
-                    getInputAndSolve(year, day + 1, puzzles[day], client, Submission.NONE);
+                    getInputAndSolve(year, day + 1, puzzles[day], client);
             }
         }
     }
 
-    public static void solvePuzzle(int year, int day, Submission submission) {
+    public static void solvePuzzle(int year, int day) {
         if (day > 25 || day < 1)
             throw new IllegalArgumentException("day is out of range");
         PuzzleSupplier[] puzzles = PUZZLES_BY_YEAR.get(year);
@@ -89,12 +89,12 @@ public final class AdventOfCode {
             getInputAndSolve(year, day,
                              Objects.requireNonNull(puzzles[day - 1], () -> String.format(
                                  "no solution has been added for year %s, day %s", year, day)),
-                             client, submission);
+                             client);
         }
     }
 
-    public static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier, @NotNull HttpClient client,
-                                        Submission submission) {
+    public static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier,
+                                        @NotNull HttpClient client) {
         System.out.println();
         try (BufferedReader reader = new BufferedReader(
             new InputStreamReader(client.send(
@@ -108,6 +108,7 @@ public final class AdventOfCode {
             long before = System.nanoTime();
             Puzzle puzzle = supplier.get();
             puzzle.input(reader);
+            puzzle.init();
             long timeElapsed = System.nanoTime() - before;
             System.out.printf("Puzzle input supplied and initiated in %s seconds!%n", timeElapsed / 1e9);
 
@@ -133,9 +134,5 @@ public final class AdventOfCode {
 
     public static HttpClient createHttpClient() {
         return HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault()).build();
-    }
-
-    public enum Submission {
-        NONE, PART_ONE, PART_TWO
     }
 }

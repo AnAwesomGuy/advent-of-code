@@ -1,6 +1,5 @@
 package net.anawesomguy.adventofcode;
 
-import net.anawesomguy.adventofcode.AdventOfCode.Submission;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -13,18 +12,19 @@ public interface Puzzle {
      */
     void input(BufferedReader input) throws IOException, InvalidInputException;
 
+    /**
+     * Used to run common code between both parts. Can be assumed to be called before {@link #solvePart1()} and {@link #solvePart2()}.
+     */
     default void init() {
     }
 
     /**
      * @return the puzzle answer for part one
-     * @see Submission#PART_ONE
      */
     int solvePart1();
 
     /**
      * @return the puzzle answer for part two
-     * @see Submission#PART_TWO
      */
     int solvePart2();
 
