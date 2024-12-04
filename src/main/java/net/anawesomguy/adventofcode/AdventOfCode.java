@@ -6,8 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntComparators;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
@@ -96,18 +95,17 @@ public final class AdventOfCode {
     public static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier,
                                         @NotNull HttpClient client) {
         System.out.println();
-        try (BufferedReader reader = new BufferedReader(
-            new InputStreamReader(client.send(
+        try (InputStream input = client.send(
                                             HttpRequest.newBuilder(AOC_URI.resolve(String.format("%s/day/%s/input", year, day)))
                                                        .GET().build(),
                                             BodyHandlers.ofInputStream())
-                                        .body()))
+                                        .body()
         ) {
             System.out.printf("Solving: Day %s, Year %s%n", day, year);
 
             long before = System.nanoTime();
             Puzzle puzzle = supplier.get();
-            puzzle.input(reader);
+            puzzle.input(input);
             puzzle.init();
             double timeElapsed = (System.nanoTime() - before) / 1e6;
             System.out.printf("Puzzle input supplied and initiated in %s ms!%n", timeElapsed);
