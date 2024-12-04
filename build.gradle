@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+}
+
+group = 'net.anawesomguy'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    year2024
+}
+
+jar {
+    manifest {
+        attributes([
+                'Main-Class': 'net.anawesomguy.adventofcode.AdventOfCode'
+        ])
+    }
+}
+
+dependencies {
+    //implementation 'com.google.guava:guava:33.3.1-jre'
+    //implementation 'org.apache.commons:commons-lang3:3.17.0'
+    //implementation 'org.apache.commons:commons-collections4:4.5.0-M2'
+    implementation 'it.unimi.dsi:fastutil-core:8.5.15'
+    implementation 'org.jetbrains:annotations:26.0.1'
+
+    sourceSets.forEach {
+        def main = sourceSets.main
+        if (it != main) {
+            add(it.getImplementationConfigurationName(), main.output)
+            it.compileClasspath += main.compileClasspath
+            it.runtimeClasspath += main.runtimeClasspath
+        }
+    }
+}
