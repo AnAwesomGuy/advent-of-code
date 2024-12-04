@@ -1,35 +1,35 @@
 package net.anawesomguy.adventofcode.year2024;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle.LineBased;
 
+import java.util.Collections;
+
 public final class Day1 implements LineBased {
-    private final IntList column1 = new IntArrayList(1000);
-    private final IntList column2 = new IntArrayList(1000);
+    private final IntList leftColumn = new IntArrayList(1000);
+    private final IntList rightColumn = new IntArrayList(1000);
 
     @Override
     public void input(String line) {
         String[] numbers = line.split(" {3}");
         if (numbers.length != 2)
             throw new InvalidInputException();
-        column1.add(Integer.parseInt(numbers[0]));
-        column2.add(Integer.parseInt(numbers[1]));
-    }
-
-    public void init() {
-        this.column1.sort(null);
-        this.column2.sort(null);
+        leftColumn.add(Integer.parseInt(numbers[0]));
+        rightColumn.add(Integer.parseInt(numbers[1]));
     }
 
     @Override
     public int solvePart1() {
-        int[] column1 = this.column1.toIntArray();
-        int[] column2 = this.column2.toIntArray();
+        int[] column1 = this.leftColumn.toIntArray();
+        int[] column2 = this.rightColumn.toIntArray();
         if (column1.length != column2.length)
             throw new IllegalStateException();
 
+        IntArrays.unstableSort(column1);
+        IntArrays.unstableSort(column2);
         int result = 0;
         for (int i = 0; i < column1.length; i++)
             result += Math.abs(column1[i] - column2[i]);
@@ -38,6 +38,26 @@ public final class Day1 implements LineBased {
 
     @Override
     public int solvePart2() {
-        return 0;
+//        @SuppressWarnings("deprecation")
+//        Int2IntMap leftCountMap = new Int2IntOpenHashMap(
+//            this.leftColumn.stream().collect(
+//                Collectors.groupingBy(Function.identity(), Collectors.summingInt(o -> 1))));
+//        @SuppressWarnings("deprecation")
+//        Int2IntMap rightCountMap = new Int2IntOpenHashMap(
+//            this.rightColumn.stream().collect(
+//                Collectors.groupingBy(Function.identity(), Collectors.summingInt(o -> 1))));
+//
+//        leftCountMap.forEach((key, val) -> rightCountMap.mergeInt(key, val, (k, v) -> k * v));
+//        return rightCountMap.int2IntEntrySet()
+//                            .stream()
+//                            .mapToInt((e) -> e.getIntKey() * e.getIntValue())
+//                            .sum();
+
+        // this is probably insanely inefficient but the weird mess above doesnt work so idk lol
+        int result = 0;
+        IntList rightColumn = this.rightColumn;
+        for (int left : this.leftColumn)
+            result += left * Collections.frequency(rightColumn, left);
+        return result;
     }
 }

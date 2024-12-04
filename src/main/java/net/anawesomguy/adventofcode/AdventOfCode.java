@@ -109,23 +109,22 @@ public final class AdventOfCode {
             Puzzle puzzle = supplier.get();
             puzzle.input(reader);
             puzzle.init();
-            long timeElapsed = System.nanoTime() - before;
-            System.out.printf("Puzzle input supplied and initiated in %s seconds!%n", timeElapsed / 1e9);
+            double timeElapsed = (System.nanoTime() - before) / 1e6;
+            System.out.printf("Puzzle input supplied and initiated in %s ms!%n", timeElapsed);
 
             long before1 = System.nanoTime();
             int result1 = puzzle.solvePart1();
-            long timeElapsed1 = System.nanoTime() - before1;
-            System.out.printf("Part one solved in %s seconds!%n" +
-                              "Result: %s%n", timeElapsed1 / 1e9, result1);
+            double timeElapsed1 = (System.nanoTime() - before1) / 1e6;
+            System.out.printf("Part one solved in %s ms!%n" +
+                              "Result: %s%n", timeElapsed1, result1);
 
             long before2 = System.nanoTime();
             int result2 = puzzle.solvePart2();
-            long timeElapsed2 = System.nanoTime() - before2;
-            System.out.printf("Part two solved in %s seconds!%n" +
+            double timeElapsed2 = (System.nanoTime() - before2) / 1e6;
+            System.out.printf("Part two solved in %s ms!%n" +
                               "Result: %s%n" +
-                              "Total time: %s%n",
-                              timeElapsed2 / 1e9, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
-
+                              "Total time for solve: %s ms%n",
+                              timeElapsed2, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
         } catch (Exception e) {
             System.out.printf("Exception occurred while solving puzzle for day %s of %s!%n", day, year);
             e.printStackTrace();
