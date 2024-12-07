@@ -1,10 +1,10 @@
 package net.anawesomguy.adventofcode.year2024;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle.LineBased;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 
@@ -14,7 +14,7 @@ public final class Day1 implements LineBased {
 
     @Override
     public void input(String line) {
-        String[] numbers = line.split(" {3}");
+        String[] numbers = StringUtils.split(line);
         if (numbers.length != 2)
             throw new InvalidInputException();
         leftColumn.add(Integer.parseInt(numbers[0]));
@@ -23,16 +23,17 @@ public final class Day1 implements LineBased {
 
     @Override
     public int solvePart1() {
-        int[] column1 = this.leftColumn.toIntArray();
-        int[] column2 = this.rightColumn.toIntArray();
-        if (column1.length != column2.length)
+        IntList column1 = this.leftColumn;
+        IntList column2 = this.rightColumn;
+        int size = column1.size();
+        if (size != column2.size())
             throw new IllegalStateException();
 
-        IntArrays.unstableSort(column1);
-        IntArrays.unstableSort(column2);
+        column1.unstableSort(null);
+        column2.unstableSort(null);
         int result = 0;
-        for (int i = 0; i < column1.length; i++)
-            result += Math.abs(column1[i] - column2[i]);
+        for (int i = 0; i < size; i++)
+            result += Math.abs(column1.getInt(i) - column2.getInt(i));
         return result;
     }
 

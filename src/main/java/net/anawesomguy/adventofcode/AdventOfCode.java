@@ -15,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 
 public final class AdventOfCode {
@@ -23,6 +24,7 @@ public final class AdventOfCode {
     }
 
     public static final URI AOC_URI = URI.create("https://adventofcode.com/");
+    private static final Comparator<PuzzleSupplier> NULLS_LAST = Comparator.nullsLast(Comparator.naturalOrder());
 
     static {
         //session cookie (aoc needs authentication)
@@ -40,26 +42,25 @@ public final class AdventOfCode {
     public static void addPuzzles(int year, @NotNull PuzzleSupplier... puzzles) {
         if (puzzles == null)
             throw new NullPointerException("tried to register null puzzles!");
-        if (puzzles.length == 0)
+        int length = puzzles.length;
+        if (length == 0)
             return;
-        if (puzzles.length > 25)
+        if (length > 25)
             throw new IllegalArgumentException("cannot have more than 25 puzzles per year!");
         PuzzleSupplier[] oldPuzzles = PUZZLES_BY_YEAR.get(year);
         if (oldPuzzles == null) {
-            if (puzzles.length != 25)
+            if (length != 25)
                 puzzles = Arrays.copyOf(puzzles, 25);
+            Arrays.sort(puzzles, NULLS_LAST);
             PUZZLES_BY_YEAR.put(year, puzzles);
         } else {
-            if (oldPuzzles.length == 25)
+            if (oldPuzzles.length != 25)
                 throw new AssertionError();
-            int j = 0;
-            for (int i = 0; i < oldPuzzles.length; i++)
+            for (int i = 0, j = 0; i < 25/*oldPuzzles.length*/; i++)
                 if (oldPuzzles[i] == null)
                     oldPuzzles[i] = puzzles[j++];
-            //noinspection StatementWithEmptyBody
-            if (j != puzzles.length) {
-                // do something? idk puzzles wasnt fully fitted into the oldPuzzles
-            }
+            Arrays.sort(oldPuzzles, NULLS_LAST);
+            // if (j != length) // puzzles wasnt fully fitted into oldPuzzles
         }
     }
 
@@ -94,12 +95,11 @@ public final class AdventOfCode {
 
     public static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier,
                                         @NotNull HttpClient client) {
-        System.out.println();
         try (InputStream input = client.send(
-                                            HttpRequest.newBuilder(AOC_URI.resolve(String.format("%s/day/%s/input", year, day)))
-                                                       .GET().build(),
-                                            BodyHandlers.ofInputStream())
-                                        .body()
+                                           HttpRequest.newBuilder(AOC_URI.resolve(String.format("%s/day/%s/input", year, day)))
+                                                      .GET().build(),
+                                           BodyHandlers.ofInputStream())
+                                       .body()
         ) {
             System.out.printf("Solving: Day %s, Year %s%n", day, year);
 
@@ -108,24 +108,26 @@ public final class AdventOfCode {
             puzzle.input(input);
             puzzle.init();
             double timeElapsed = (System.nanoTime() - before) / 1e6;
-            System.out.printf("Puzzle input supplied and initiated in %s ms!%n", timeElapsed);
+            System.out.printf("Puzzle input supplied and initiated in %.3f ms!%n", timeElapsed);
 
             long before1 = System.nanoTime();
             int result1 = puzzle.solvePart1();
             double timeElapsed1 = (System.nanoTime() - before1) / 1e6;
-            System.out.printf("Part one solved in %s ms!%n" +
+            System.out.printf("Part one solved in %.3f ms!%n" +
                               "Result: %s%n", timeElapsed1, result1);
 
             long before2 = System.nanoTime();
             int result2 = puzzle.solvePart2();
             double timeElapsed2 = (System.nanoTime() - before2) / 1e6;
-            System.out.printf("Part two solved in %s ms!%n" +
+            System.out.printf("Part two solved in %.3f ms!%n" +
                               "Result: %s%n" +
-                              "Total time for solve: %s ms%n",
+                              "Total time for solve: %.3f ms%n",
                               timeElapsed2, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
         } catch (Exception e) {
             System.out.printf("Exception occurred while solving puzzle for day %s of %s!%n", day, year);
             e.printStackTrace();
+        } finally {
+            System.out.println();
         }
     }
 

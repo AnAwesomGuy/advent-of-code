@@ -11,8 +11,9 @@ public final class AOC2024 {
     public static final int YEAR_NUM = 2024;
 
     public static void main(String... args) {
-        addPuzzles(YEAR_NUM,
-                   Day1::new
+        addPuzzles(
+            YEAR_NUM,
+            Day1::new, Day2::new
         );
         solvePuzzles(YEAR_NUM);
     }
