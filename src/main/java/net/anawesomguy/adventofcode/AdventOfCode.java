@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntComparators;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier.Simple;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +96,8 @@ public interface AdventOfCode {
                 System.err.println("Error loading service ");
             }
         }
+
+        solveAllPuzzles();
     }
 
     // static methods for getting and registering puzzles
@@ -156,10 +159,15 @@ public interface AdventOfCode {
     // static methods to solve puzzles
 
     static void solveAllPuzzles() {
+        ObjectSortedSet<Entry<PuzzleSupplier[]>> entrySet = PUZZLES_BY_YEAR.int2ObjectEntrySet();
         try (HttpClient client = createHttpClient()) {
-            for (Entry<PuzzleSupplier[]> entry : PUZZLES_BY_YEAR.int2ObjectEntrySet()) {
+            for (Entry<PuzzleSupplier[]> entry : entrySet) {
+                int year = entry.getIntKey();
+                System.out.println("Solving puzzles for year " + year);
+                System.out.println("----------------------------------------------------------------");
+                System.out.println();
                 PuzzleSupplier[] puzzles = entry.getValue();
-                for (int day = 0, year = entry.getIntKey(); day < puzzles.length; day++) {
+                for (int day = 0; day < puzzles.length; day++) {
                     PuzzleSupplier puzzle = puzzles[day];
                     if (puzzle != null)
                         getInputAndSolve(year, day + 1, puzzles[day], client);
