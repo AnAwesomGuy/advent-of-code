@@ -1,20 +1,15 @@
 package net.anawesomguy.adventofcode.year2024;
 
-import static net.anawesomguy.adventofcode.AdventOfCode.addPuzzles;
-import static net.anawesomguy.adventofcode.AdventOfCode.solvePuzzles;
+import net.anawesomguy.adventofcode.AdventOfCode.Annotated;
+import net.anawesomguy.adventofcode.AdventYear;
 
-public final class AOC2024 {
+@AdventYear(year = AOC2024.YEAR, puzzleClasses = {
+    Day1.class, Day2.class
+})
+public final class AOC2024 implements Annotated {
     private AOC2024() {
         throw new AssertionError();
     }
 
-    public static final int YEAR_NUM = 2024;
-
-    public static void main(String... args) {
-        addPuzzles(
-            YEAR_NUM,
-            Day1::new, Day2::new
-        );
-        solvePuzzles(YEAR_NUM);
-    }
+    public static final int YEAR = 2024;
 }

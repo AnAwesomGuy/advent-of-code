@@ -1,12 +1,15 @@
 package net.anawesomguy.adventofcode;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntComparators;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier;
+import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier.Simple;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
@@ -16,32 +19,118 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.ServiceLoader;
 
-public final class AdventOfCode {
-    private AdventOfCode() {
-        throw new AssertionError();
+import static net.anawesomguy.adventofcode.AOCFields.*;
+
+public interface AdventOfCode {
+    int getYear();
+
+    PuzzleSupplier[] getPuzzles();
+
+    interface Annotated extends AdventOfCode {
+        @Override
+        default int getYear() {
+            Class<? extends AdventOfCode> clazz = this.getClass();
+            AdventYear adventYear = this.getClass().getAnnotation(AdventYear.class);
+            if (adventYear == null) {
+                AdventYear packageYear = clazz.getPackage().getAnnotation(AdventYear.class);
+                if (packageYear == null) // TODO replace with better exception
+                    throw new NoSuchElementException("class extends " + this.getClass().getName() +
+                                                     " but neither it nor its package is annotated with @" +
+                                                     AdventYear.class.getName() + "!");
+                return packageYear.year();
+            }
+            return adventYear.year();
+        }
+
+        @Override
+        default PuzzleSupplier[] getPuzzles() {
+            Class<? extends Puzzle>[] puzzleClasses = getPuzzleClasses();
+            int length;
+            if (puzzleClasses == null || (length = puzzleClasses.length) == 0)
+                return EMPTY_PUZZLES;
+            if (length > 25)
+                System.err.printf("%s#getPuzzleClasses returned an array larger than 25, truncating!%n",
+                                  this.getClass().getName());
+            PuzzleSupplier[] puzzles = new PuzzleSupplier[length];
+            for (int i = 0; i < length; i++) {
+                Class<? extends Puzzle> clazz = puzzleClasses[i];
+                AdventDay adventDay = clazz.getAnnotation(AdventDay.class);
+                if (adventDay == null)
+                    puzzles[i] = () -> instantiatePuzzle(clazz);
+                else puzzles[i] = new Simple(adventDay.day(), () -> instantiatePuzzle(clazz));
+            }
+            return puzzles;
+        }
+
+        default Class<? extends Puzzle>[] getPuzzleClasses() {
+            Class<? extends AdventOfCode> clazz = this.getClass();
+            AdventYear adventYear = this.getClass().getAnnotation(AdventYear.class);
+            if (adventYear == null) {
+                AdventYear packageYear = clazz.getPackage().getAnnotation(AdventYear.class);
+                if (packageYear == null) // TODO replace with better exception
+                    throw new NoSuchElementException("class extends " + this.getClass().getName() +
+                                                     " but neither it nor its package is annotated with @" +
+                                                     AdventYear.class.getName() + "!");
+                return packageYear.puzzleClasses();
+            }
+            return adventYear.puzzleClasses();
+        }
     }
 
-    public static final URI AOC_URI = URI.create("https://adventofcode.com/");
-    private static final Comparator<PuzzleSupplier> NULLS_LAST = Comparator.nullsLast(Comparator.naturalOrder());
+    // main method
 
-    static {
-        //session cookie (aoc needs authentication)
-        CookieManager cookies = new CookieManager();
-        CookieManager.setDefault(cookies);
-        HttpCookie sessionCookie = new HttpCookie("session", System.getenv("AOC_SESSION"));
-        sessionCookie.setPath("/");
-        sessionCookie.setVersion(0);
-        cookies.getCookieStore().add(AOC_URI, sessionCookie);
+    static void main(String... args) {
+        Iterator<AdventOfCode> iterator =
+            ServiceLoader.load(AdventOfCode.class).iterator();
+        while (iterator.hasNext()) {
+            try {
+                AdventOfCode aoc = iterator.next();
+                addPuzzles(aoc.getYear(), aoc.getPuzzles());
+            } catch (Exception e) {
+                System.err.println("Error loading service ");
+            }
+        }
     }
 
-    private static final Int2ObjectSortedMap<@NotNull PuzzleSupplier[]>
-        PUZZLES_BY_YEAR = new Int2ObjectRBTreeMap<>(IntComparators.OPPOSITE_COMPARATOR);
+    // static methods for getting and registering puzzles
 
-    public static void addPuzzles(int year, @NotNull PuzzleSupplier... puzzles) {
+    URI AOC_URI = URI.create("https://adventofcode.com/");
+
+    @NotNull
+    static PuzzleSupplier[] getPuzzles(int year) {
+        PuzzleSupplier[] puzzles = PUZZLES_BY_YEAR.get(year);
         if (puzzles == null)
-            throw new NullPointerException("tried to register null puzzles!");
+            return EMPTY_PUZZLES;
+        int length = puzzles.length, empty = 0;
+        for (int i = length - 1; i >= 0; i--)
+            if (puzzles[i] == null)
+                empty++;
+            else break;
+        return Arrays.copyOf(puzzles, length - empty); // makes a COPY that removes the null elements at the end
+    }
+
+    static void addPuzzle(int year, int day, @NotNull PuzzleSupplier puzzle) {
+        if (puzzle == null)
+            throw new NullPointerException("tried to add null puzzle!");
+        if (day > 25 || day < 1)
+            throw new IllegalArgumentException("cannot have more than 25 or less than 1 advent days per year!");
+        PuzzleSupplier[] oldPuzzles = PUZZLES_BY_YEAR.get(year);
+        if (oldPuzzles == null) {
+            oldPuzzles = new PuzzleSupplier[25];
+            oldPuzzles[day] = puzzle;
+            PUZZLES_BY_YEAR.put(year, oldPuzzles);
+        } else
+            oldPuzzles[day] = puzzle;
+    }
+
+    static void addPuzzles(int year, PuzzleSupplier @NotNull ... puzzles) {
+        if (puzzles == null)
+            throw new NullPointerException("tried to add null puzzles!");
         int length = puzzles.length;
         if (length == 0)
             return;
@@ -64,7 +153,22 @@ public final class AdventOfCode {
         }
     }
 
-    public static void solvePuzzles(int year) {
+    // static methods to solve puzzles
+
+    static void solveAllPuzzles() {
+        try (HttpClient client = createHttpClient()) {
+            for (Entry<PuzzleSupplier[]> entry : PUZZLES_BY_YEAR.int2ObjectEntrySet()) {
+                PuzzleSupplier[] puzzles = entry.getValue();
+                for (int day = 0, year = entry.getIntKey(); day < puzzles.length; day++) {
+                    PuzzleSupplier puzzle = puzzles[day];
+                    if (puzzle != null)
+                        getInputAndSolve(year, day + 1, puzzles[day], client);
+                }
+            }
+        }
+    }
+
+    static void solvePuzzles(int year) {
         PuzzleSupplier[] puzzles = PUZZLES_BY_YEAR.get(year);
         if (puzzles == null)
             throw new IllegalArgumentException();
@@ -78,7 +182,7 @@ public final class AdventOfCode {
         }
     }
 
-    public static void solvePuzzle(int year, int day) {
+    static void solvePuzzle(int year, int day) {
         if (day > 25 || day < 1)
             throw new IllegalArgumentException("day is out of range");
         PuzzleSupplier[] puzzles = PUZZLES_BY_YEAR.get(year);
@@ -93,8 +197,8 @@ public final class AdventOfCode {
         }
     }
 
-    public static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier,
-                                        @NotNull HttpClient client) {
+    static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier,
+                                 @NotNull HttpClient client) {
         try (InputStream input = client.send(
                                            HttpRequest.newBuilder(AOC_URI.resolve(String.format("%s/day/%s/input", year, day)))
                                                       .GET().build(),
@@ -105,6 +209,10 @@ public final class AdventOfCode {
 
             long before = System.nanoTime();
             Puzzle puzzle = supplier.get();
+            if (puzzle == null) {
+                System.out.println("Got null puzzle, cancelling!");
+                return;
+            }
             puzzle.input(input);
             puzzle.init();
             double timeElapsed = (System.nanoTime() - before) / 1e6;
@@ -124,14 +232,52 @@ public final class AdventOfCode {
                               "Total time for solve: %.3f ms%n",
                               timeElapsed2, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
         } catch (Exception e) {
-            System.out.printf("Exception occurred while solving puzzle for day %s of %s!%n", day, year);
+            System.err.printf("Exception occurred while solving puzzle for day %s of %s!%n", day, year);
             e.printStackTrace();
         } finally {
             System.out.println();
         }
     }
 
-    public static HttpClient createHttpClient() {
+    static HttpClient createHttpClient() {
         return HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault()).build();
+    }
+}
+
+/**
+ * Contains all the static fields that shouldn't be exposed because interfaces cannot have private fields.
+ */
+final class AOCFields {
+    private AOCFields() {
+        throw new AssertionError();
+    }
+
+    static final Comparator<PuzzleSupplier> NULLS_LAST = Comparator.nullsLast(Comparator.naturalOrder());
+    static final PuzzleSupplier[] EMPTY_PUZZLES = new PuzzleSupplier[0];
+    static final Int2ObjectSortedMap<@NotNull PuzzleSupplier[]>
+        PUZZLES_BY_YEAR = new Int2ObjectRBTreeMap<>(IntComparators.OPPOSITE_COMPARATOR);
+
+    static {
+        //session cookie (aoc needs authentication)
+        CookieManager cookies = new CookieManager();
+        CookieManager.setDefault(cookies);
+        HttpCookie sessionCookie = new HttpCookie("session", System.getenv("AOC_SESSION"));
+        sessionCookie.setPath("/");
+        sessionCookie.setVersion(0);
+        cookies.getCookieStore().add(AdventOfCode.AOC_URI, sessionCookie);
+    }
+
+    static Puzzle instantiatePuzzle(Class<? extends Puzzle> clazz) {
+        try {
+            Constructor<? extends Puzzle> constructor = clazz.getDeclaredConstructor();
+            constructor.trySetAccessible();
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException e) {
+            System.err.printf("Puzzle %s does not have a no-args constructor!%n", clazz.getName());
+            return null;
+        } catch (ReflectiveOperationException | SecurityException e) {
+            System.err.printf("Error instantiating puzzle %s!%n", clazz.getName());
+            return null;
+        }
     }
 }

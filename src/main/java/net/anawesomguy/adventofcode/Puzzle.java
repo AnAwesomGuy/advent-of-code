@@ -84,9 +84,24 @@ public interface Puzzle {
     int solvePart2();
 
     interface PuzzleSupplier extends Supplier<Puzzle>, Comparable<PuzzleSupplier> {
+        PuzzleSupplier FAIL = () -> { throw new UnsupportedOperationException(); };
+        PuzzleSupplier EMPTY = () -> null;
+
         @Override
         default int compareTo(@NotNull Puzzle.PuzzleSupplier o) {
             return 0;
+        }
+
+        record Simple(int day, Supplier<Puzzle> supplier) implements PuzzleSupplier {
+            @Override
+            public Puzzle get() {
+                return supplier.get();
+            }
+
+            @Override
+            public int compareTo(@NotNull PuzzleSupplier other) {
+                return other instanceof Simple ? Integer.compare(this.day, ((Simple)other).day) : 0;
+            }
         }
     }
 }

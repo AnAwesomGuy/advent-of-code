@@ -19,13 +19,38 @@ dependencies {
     implementation 'it.unimi.dsi:fastutil-core:8.5.15'
     implementation 'org.apache.commons:commons-lang3:3.17.0'
     implementation 'org.jetbrains:annotations:26.0.1'
+}
 
-    sourceSets.forEach {
+def mainClassName = 'net.anawesomguy.adventofcode.AdventOfCode'
+
+jar {
+    archiveClassifier = 'api'
+    manifest.attributes([
+            'Main-Class': mainClassName
+    ])
+}
+
+sourceSets.forEach {
+    if (!SourceSet.isMain(it) && it.name != SourceSet.TEST_SOURCE_SET_NAME) {
         def main = sourceSets.main
-        if (it != main) {
-            add(it.getImplementationConfigurationName(), main.output)
-            it.compileClasspath += main.compileClasspath
-            it.runtimeClasspath += main.runtimeClasspath
+        dependencies.add(it.implementationConfigurationName, main.output)
+        it.compileClasspath += main.compileClasspath
+        it.runtimeClasspath += main.runtimeClasspath
+
+        tasks.register(it.jarTaskName, Jar) { task ->
+            group 'build'
+            dependsOn it.compileJavaTaskName, it.processResourcesTaskName
+            from it.output
+            archiveClassifier = it.name
+        }
+
+        tasks.register('run' + it.name.capitalize(), JavaExec) { task ->
+            dependsOn tasks.named(it.jarTaskName)
+            classpath it.runtimeClasspath
+            mainClass = mainClassName
+            jvmArgs '-Xmx8M'
+            workingDir 'run'
+            workingDir.mkdirs()
         }
     }
 }
