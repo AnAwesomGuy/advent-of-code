@@ -8,7 +8,9 @@ import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier.Simple;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.CookieHandler;
@@ -18,6 +20,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -25,7 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.ServiceLoader;
 
-import static net.anawesomguy.adventofcode.AOCFields.*;
+import static net.anawesomguy.adventofcode.AOCStatics.*;
 
 public interface AdventOfCode {
     int getYear();
@@ -93,7 +97,8 @@ public interface AdventOfCode {
                 AdventOfCode aoc = iterator.next();
                 addPuzzles(aoc.getYear(), aoc.getPuzzles());
             } catch (Exception e) {
-                System.err.println("Error loading service ");
+                System.err.println("Error loading service!");
+                e.printStackTrace();
             }
         }
 
@@ -103,6 +108,7 @@ public interface AdventOfCode {
     // static methods for getting and registering puzzles
 
     URI AOC_URI = URI.create("https://adventofcode.com/");
+    Path CACHE_PATH = Path.of(".aoc_cache");
 
     @NotNull
     static PuzzleSupplier[] getPuzzles(int year) {
@@ -117,7 +123,16 @@ public interface AdventOfCode {
         return Arrays.copyOf(puzzles, length - empty); // makes a COPY that removes the null elements at the end
     }
 
-    static void addPuzzle(int year, int day, @NotNull PuzzleSupplier puzzle) {
+    static PuzzleSupplier getPuzzle(int year, @Range(from = 1, to = 25) int day) {
+        if (day > 25 || day < 1)
+            throw new IllegalArgumentException("cannot have more than 25 or less than 1 advent days per year!");
+        PuzzleSupplier[] puzzles = PUZZLES_BY_YEAR.get(year);
+        if (puzzles != null)
+            return puzzles[day];
+        return null;
+    }
+
+    static void addPuzzle(int year, @Range(from = 1, to = 25) int day, @NotNull PuzzleSupplier puzzle) {
         if (puzzle == null)
             throw new NullPointerException("tried to add null puzzle!");
         if (day > 25 || day < 1)
@@ -160,7 +175,7 @@ public interface AdventOfCode {
 
     static void solveAllPuzzles() {
         ObjectSortedSet<Entry<PuzzleSupplier[]>> entrySet = PUZZLES_BY_YEAR.int2ObjectEntrySet();
-        try (HttpClient client = createHttpClient()) {
+        try (LazyCloseable<HttpClient> client = lazyHttpClient()) {
             for (Entry<PuzzleSupplier[]> entry : entrySet) {
                 int year = entry.getIntKey();
                 System.out.println("Solving puzzles for year " + year);
@@ -181,23 +196,23 @@ public interface AdventOfCode {
         if (puzzles == null)
             throw new IllegalArgumentException();
 
-        try (HttpClient client = createHttpClient()) {
+        try (LazyCloseable<HttpClient> client = lazyHttpClient()) {
             for (int day = 0; day < puzzles.length; day++) {
                 PuzzleSupplier puzzle = puzzles[day];
-                if (puzzle != null)
+                if (puzzle != null && puzzle != PuzzleSupplier.EMPTY)
                     getInputAndSolve(year, day + 1, puzzles[day], client);
             }
         }
     }
 
-    static void solvePuzzle(int year, int day) {
+    static void solvePuzzle(int year, @Range(from = 1, to = 25) int day) {
         if (day > 25 || day < 1)
             throw new IllegalArgumentException("day is out of range");
         PuzzleSupplier[] puzzles = PUZZLES_BY_YEAR.get(year);
         if (puzzles == null)
             throw new IllegalArgumentException();
 
-        try (HttpClient client = createHttpClient()) {
+        try (LazyCloseable<HttpClient> client = lazyHttpClient()) {
             getInputAndSolve(year, day,
                              Objects.requireNonNull(puzzles[day - 1], () -> String.format(
                                  "no solution has been added for year %s, day %s", year, day)),
@@ -205,40 +220,21 @@ public interface AdventOfCode {
         }
     }
 
-    static void getInputAndSolve(int year, int day, @NotNull PuzzleSupplier supplier,
-                                 @NotNull HttpClient client) {
-        try (InputStream input = client.send(
-                                           HttpRequest.newBuilder(AOC_URI.resolve(String.format("%s/day/%s/input", year, day)))
-                                                      .GET().build(),
-                                           BodyHandlers.ofInputStream())
-                                       .body()
-        ) {
-            System.out.printf("Solving: Day %s, Year %s%n", day, year);
-
-            long before = System.nanoTime();
-            Puzzle puzzle = supplier.get();
-            if (puzzle == null) {
-                System.out.println("Got null puzzle, cancelling!");
-                return;
+    static void getInputAndSolve(int year, @Range(from = 1, to = 25) int day,
+                                 @NotNull PuzzleSupplier supplier, @NotNull LazyCloseable<HttpClient> lazyClient) {
+        try {
+            String inputPath = String.format("%s/day/%s/input", year, day);
+            Path path = CACHE_PATH.resolve(inputPath);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path.getParent());
+                path = lazyClient.get()
+                                 .send(
+                                     HttpRequest.newBuilder(AOC_URI.resolve(inputPath))
+                                                .GET().build(),
+                                     BodyHandlers.ofFile(path))
+                                 .body();
             }
-            puzzle.input(input);
-            puzzle.init();
-            double timeElapsed = (System.nanoTime() - before) / 1e6;
-            System.out.printf("Puzzle input supplied and initiated in %.3f ms!%n", timeElapsed);
-
-            long before1 = System.nanoTime();
-            int result1 = puzzle.solvePart1();
-            double timeElapsed1 = (System.nanoTime() - before1) / 1e6;
-            System.out.printf("Part one solved in %.3f ms!%n" +
-                              "Result: %s%n", timeElapsed1, result1);
-
-            long before2 = System.nanoTime();
-            int result2 = puzzle.solvePart2();
-            double timeElapsed2 = (System.nanoTime() - before2) / 1e6;
-            System.out.printf("Part two solved in %.3f ms!%n" +
-                              "Result: %s%n" +
-                              "Total time for solve: %.3f ms%n",
-                              timeElapsed2, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
+            solvePuzzleWithInput(year, day, supplier, Files.newInputStream(path));
         } catch (Exception e) {
             System.err.printf("Exception occurred while solving puzzle for day %s of %s!%n", day, year);
             e.printStackTrace();
@@ -247,16 +243,53 @@ public interface AdventOfCode {
         }
     }
 
-    static HttpClient createHttpClient() {
-        return HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault()).build();
+    static void solvePuzzleWithInput(int year, @Range(from = 1, to = 25) int day,
+                                     @NotNull PuzzleSupplier supplier, @NotNull InputStream in) {
+        System.out.printf("Solving: Day %s, Year %s.%n", day, year);
+
+        long before = System.nanoTime();
+        Puzzle puzzle = supplier.get();
+        if (puzzle == null) {
+            System.out.println("Got null puzzle, cancelling!");
+            return;
+        }
+        try (in) {
+            puzzle.input(in);
+        } catch (IOException e) {
+            System.err.println("Exception occurred during puzzle input read, cancelling!");
+            e.printStackTrace();
+            return;
+        }
+        puzzle.init();
+        double timeElapsed = (System.nanoTime() - before) / 1e6; //ms
+        System.out.printf("Puzzle input supplied and initiated in %.3f ms.%n", timeElapsed);
+
+        long before1 = System.nanoTime();
+        int result1 = puzzle.solvePart1();
+        double timeElapsed1 = (System.nanoTime() - before1) / 1e6; //ms
+        System.out.printf("Part one solved in %.3f ms!%n" +
+                          "Result: %s%n", timeElapsed1, result1);
+
+        long before2 = System.nanoTime();
+        int result2 = puzzle.solvePart2();
+        double timeElapsed2 = (System.nanoTime() - before2) / 1e6; //ms
+        System.out.printf("Part two solved in %.3f ms!%n" +
+                          "Result: %s%n" +
+                          "Total time for solve: %.3f ms.%n",
+                          timeElapsed2, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
+
+    }
+
+    static LazyCloseable<HttpClient> lazyHttpClient() {
+        return new LazyCloseable<>(HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault())::build);
     }
 }
 
 /**
- * Contains all the static fields that shouldn't be exposed because interfaces cannot have private fields.
+ * Contains all the static fields and methods that shouldn't be exposed because interfaces cannot have private members.
  */
-final class AOCFields {
-    private AOCFields() {
+final class AOCStatics {
+    private AOCStatics() {
         throw new AssertionError();
     }
 

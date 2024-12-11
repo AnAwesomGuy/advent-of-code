@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
-import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public interface Puzzle {
     /**
@@ -61,16 +61,18 @@ public interface Puzzle {
         void input(String singeLine) throws InvalidInputException;
     }
 
-    interface LineListed extends WithBufferedReader {
+    interface LineStreamed extends WithBufferedReader {
         @Override
         default void input(BufferedReader input) throws UncheckedIOException, InvalidInputException {
-            input(input.lines().toList());
+            try (Stream<String> lines = input.lines().onClose(() -> { try { input.close(); } catch (IOException ignore) {} })) {
+                input(lines);
+            }
         }
 
         /**
          * @param lines a list of the lines of the puzzles input
          */
-        void input(List<String> lines) throws InvalidInputException;
+        void input(Stream<String> lines) throws InvalidInputException;
     }
 
     /**
@@ -84,7 +86,6 @@ public interface Puzzle {
     int solvePart2();
 
     interface PuzzleSupplier extends Supplier<Puzzle>, Comparable<PuzzleSupplier> {
-        PuzzleSupplier FAIL = () -> { throw new UnsupportedOperationException(); };
         PuzzleSupplier EMPTY = () -> null;
 
         @Override
