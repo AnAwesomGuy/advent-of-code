@@ -6,7 +6,8 @@ build/
 run
 
 ### IntelliJ IDEA ###
-.idea/
+.idea/*
+!.idea/runConfigurations/
 *.iws
 *.iml
 *.ipr

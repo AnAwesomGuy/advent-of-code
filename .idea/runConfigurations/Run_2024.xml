@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run 2024" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="net.anawesomguy.adventofcode.year2024.AOC2024" />
+    <module name="adventofcode.year2024" />
+    <shortenClasspath name="NONE" />
+    <option name="VM_PARAMETERS" value="-Xmx6M" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

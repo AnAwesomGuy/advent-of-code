@@ -37,15 +37,17 @@ sourceSets.forEach {
         it.compileClasspath += main.compileClasspath
         it.runtimeClasspath += main.runtimeClasspath
 
-        tasks.register(it.jarTaskName, Jar) { task ->
+        def jarTask = tasks.register(it.jarTaskName, Jar) { task ->
             group 'build'
             dependsOn it.compileJavaTaskName, it.processResourcesTaskName
-            from it.output
+            from it.output, main.output
             archiveClassifier = it.name
         }
 
+        build.dependsOn jarTask
+
         tasks.register('run' + it.name.capitalize(), JavaExec) { task ->
-            dependsOn tasks.named(it.jarTaskName)
+            dependsOn jarTask
             classpath it.runtimeClasspath
             mainClass = mainClassName
             jvmArgs '-Xmx8M', '-XX:+CompactStrings'
