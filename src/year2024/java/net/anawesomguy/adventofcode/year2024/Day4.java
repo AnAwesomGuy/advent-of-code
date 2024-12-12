@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle.LineStreamed;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -45,7 +46,9 @@ public final class Day4 implements LineStreamed {
                 assert letter == XMASLetter.X;
                 for (Direction dir : Direction.VALUES) {
                     XMASLetter current = letter;
-                    while ((current = current.next()) != null && current == dir.getFromOffset(crossword, index, y)) {
+                    MutableInt cursor = new MutableInt(1);
+                    while ((current = current.next()) != null &&
+                           current == dir.getFromOffset(crossword, index, y, cursor)) {
                         if (current == XMASLetter.S) {
                             result++;
                             break;
@@ -104,15 +107,16 @@ public final class Day4 implements LineStreamed {
             this.yOffset = yOffset;
         }
 
-        public <T> T getFromOffset(T[][] arr2d, int x, int y) {
-            int newX = x + xOffset;
-            if (newX < 0 || newX >= arr2d.length)
+        public <T> T getFromOffset(T[][] arr2d, int x, int y, MutableInt cursor) {
+            int cur = cursor.getAndIncrement();
+            int newY = y - (yOffset * cur);
+            if (newY < 0 || newY >= arr2d.length)
                 return null;
-            T[] arr = arr2d[newX];
-            int newY = y - yOffset;
-            if (newY < 0 || newY >= arr.length)
+            T[] arr = arr2d[newY];
+            int newX = x + (xOffset * cur);
+            if (newX < 0 || newX >= arr.length)
                 return null;
-            return arr[newY];
+            return arr[newX];
         }
     }
 }

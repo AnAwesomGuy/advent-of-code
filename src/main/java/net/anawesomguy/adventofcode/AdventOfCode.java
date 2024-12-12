@@ -102,7 +102,9 @@ public interface AdventOfCode {
             }
         }
 
+        long before = System.nanoTime();
         solveAllPuzzles();
+        System.out.printf("%nSolved all puzzles in %sms.", (System.nanoTime() - before) / 1e6);
     }
 
     // static methods for getting and registering puzzles
