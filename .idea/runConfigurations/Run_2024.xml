@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run 2024" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="ibm-21" />
     <option name="MAIN_CLASS_NAME" value="net.anawesomguy.adventofcode.year2024.AOC2024" />
     <module name="adventofcode.year2024" />
     <shortenClasspath name="NONE" />

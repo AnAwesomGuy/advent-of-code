@@ -50,9 +50,8 @@ sourceSets.forEach {
             dependsOn jarTask
             classpath it.runtimeClasspath
             mainClass = mainClassName
-            jvmArgs '-Xmx8M', '-XX:+CompactStrings'
-            workingDir 'run'
-            workingDir.mkdirs()
+            jvmArgs '-Xmx8M'
+            workingDir 'build'
         }
     }
 }
