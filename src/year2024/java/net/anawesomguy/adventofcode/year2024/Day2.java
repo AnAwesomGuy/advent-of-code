@@ -9,7 +9,7 @@ import java.util.List;
 
 public final class Day2 implements LineBased {
     private final List<int[]> reports = new ArrayList<>();
-    private static final int MAX_JUMP = 3, MIN_JUMP = 1;
+    private static final int MAX_JUMP = 3;
 
     @Override
     public void input(String line) throws InvalidInputException {

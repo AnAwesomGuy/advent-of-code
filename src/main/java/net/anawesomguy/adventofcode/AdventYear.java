@@ -13,5 +13,7 @@ public @interface AdventYear {
     int year();
 
     Class<? extends Puzzle>[] puzzleClasses();
+
+    boolean searchPackage() default false;
 }
 

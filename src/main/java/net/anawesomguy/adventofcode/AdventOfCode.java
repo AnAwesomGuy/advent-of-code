@@ -1,10 +1,12 @@
 package net.anawesomguy.adventofcode;
 
+import com.google.common.base.Suppliers;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntComparators;
-import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier;
 import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier.Simple;
 import org.jetbrains.annotations.NotNull;
@@ -22,12 +24,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.function.Supplier;
 
 import static net.anawesomguy.adventofcode.AOCStatics.*;
 
@@ -64,26 +68,48 @@ public interface AdventOfCode {
             PuzzleSupplier[] puzzles = new PuzzleSupplier[length];
             for (int i = 0; i < length; i++) {
                 Class<? extends Puzzle> clazz = puzzleClasses[i];
+                if (clazz == null)
+                    continue;
                 AdventDay adventDay = clazz.getAnnotation(AdventDay.class);
                 if (adventDay == null)
                     puzzles[i] = () -> instantiatePuzzle(clazz);
-                else puzzles[i] = new Simple(adventDay.day(), () -> instantiatePuzzle(clazz));
+                else
+                    puzzles[i] = new Simple(adventDay.day(), () -> instantiatePuzzle(clazz));
             }
             return puzzles;
         }
 
+        @SuppressWarnings("unchecked")
         default Class<? extends Puzzle>[] getPuzzleClasses() {
             Class<? extends AdventOfCode> clazz = this.getClass();
             AdventYear adventYear = this.getClass().getAnnotation(AdventYear.class);
+            Class<? extends Puzzle>[] puzzles;
             if (adventYear == null) {
                 AdventYear packageYear = clazz.getPackage().getAnnotation(AdventYear.class);
                 if (packageYear == null) // TODO replace with better exception
-                    throw new NoSuchElementException("class extends " + this.getClass().getName() +
+                    throw new NoSuchElementException("class extends " + AdventOfCode.class.getName() +
                                                      " but neither it nor its package is annotated with @" +
                                                      AdventYear.class.getName() + "!");
-                return packageYear.puzzleClasses();
+                puzzles = packageYear.puzzleClasses();
+            } else {
+                if (adventYear.searchPackage()) {
+                    ArrayList<Class<? extends Puzzle>> puzzlesList = new ArrayList<>();
+                    String packageName = clazz.getPackageName();
+                    try {
+                        for (ClassInfo info : ClassPath.from(clazz.getClassLoader()).getTopLevelClasses(packageName)) {
+                            Class<?> puzzleClass = info.load();
+                            if (Puzzle.class.isAssignableFrom(puzzleClass))
+                                puzzlesList.add((Class<? extends Puzzle>)puzzleClass);
+                        }
+                    } catch (IOException e) {
+                        System.err.printf("Error scanning package %s!%n", packageName);
+                    }
+                    puzzlesList.addAll(Arrays.asList(adventYear.puzzleClasses()));
+                    puzzles = puzzlesList.toArray(new Class[0]);
+                } else
+                    puzzles = adventYear.puzzleClasses();
             }
-            return adventYear.puzzleClasses();
+            return puzzles;
         }
     }
 
@@ -121,7 +147,8 @@ public interface AdventOfCode {
         for (int i = length - 1; i >= 0; i--)
             if (puzzles[i] == null)
                 empty++;
-            else break;
+            else
+                break;
         return Arrays.copyOf(puzzles, length - empty); // makes a COPY that removes the null elements at the end
     }
 
@@ -176,21 +203,22 @@ public interface AdventOfCode {
     // static methods to solve puzzles
 
     static void solveAllPuzzles() {
-        ObjectSortedSet<Entry<PuzzleSupplier[]>> entrySet = PUZZLES_BY_YEAR.int2ObjectEntrySet();
-        try (LazyCloseable<HttpClient> client = lazyHttpClient()) {
-            for (Entry<PuzzleSupplier[]> entry : entrySet) {
-                int year = entry.getIntKey();
-                System.out.println("Solving puzzles for year " + year);
-                System.out.println("----------------------------------------------------------------");
-                System.out.println();
-                PuzzleSupplier[] puzzles = entry.getValue();
-                for (int day = 0; day < puzzles.length; day++) {
-                    PuzzleSupplier puzzle = puzzles[day];
-                    if (puzzle != null)
-                        getInputAndSolve(year, day + 1, puzzles[day], client);
-                }
+        Supplier<HttpClient> lazyClient = lazyHttpClient();
+        boolean usedHttp = false;
+        for (Entry<PuzzleSupplier[]> entry : PUZZLES_BY_YEAR.int2ObjectEntrySet()) {
+            int year = entry.getIntKey();
+            System.out.println("Solving puzzles for year " + year);
+            System.out.println("----------------------------------------------------------------");
+            System.out.println();
+            PuzzleSupplier[] puzzles = entry.getValue();
+            for (int day = 0; day < puzzles.length; day++) {
+                PuzzleSupplier puzzle = puzzles[day];
+                if (puzzle != null)
+                    usedHttp |= getInputAndSolve(year, day + 1, puzzles[day], lazyClient);
             }
         }
+        if (usedHttp)
+            lazyClient.get().close();
     }
 
     static void solvePuzzles(int year) {
@@ -198,13 +226,15 @@ public interface AdventOfCode {
         if (puzzles == null)
             throw new IllegalArgumentException();
 
-        try (LazyCloseable<HttpClient> client = lazyHttpClient()) {
-            for (int day = 0; day < puzzles.length; day++) {
-                PuzzleSupplier puzzle = puzzles[day];
-                if (puzzle != null && puzzle != PuzzleSupplier.EMPTY)
-                    getInputAndSolve(year, day + 1, puzzles[day], client);
-            }
+        boolean usedHttp = false;
+        Supplier<HttpClient> lazyClient = lazyHttpClient();
+        for (int day = 0; day < puzzles.length; day++) {
+            PuzzleSupplier puzzle = puzzles[day];
+            if (puzzle != null && puzzle != PuzzleSupplier.EMPTY)
+                usedHttp |= getInputAndSolve(year, day + 1, puzzles[day], lazyClient);
         }
+        if (usedHttp)
+            lazyClient.get().close();
     }
 
     static void solvePuzzle(int year, @Range(from = 1, to = 25) int day) {
@@ -214,16 +244,17 @@ public interface AdventOfCode {
         if (puzzles == null)
             throw new IllegalArgumentException();
 
-        try (LazyCloseable<HttpClient> client = lazyHttpClient()) {
-            getInputAndSolve(year, day,
+        Supplier<HttpClient> lazyClient = lazyHttpClient();
+        if (getInputAndSolve(year, day,
                              Objects.requireNonNull(puzzles[day - 1], () -> String.format(
                                  "no solution has been added for year %s, day %s", year, day)),
-                             client);
-        }
+                             lazyClient))
+            lazyClient.get().close();
     }
 
-    static void getInputAndSolve(int year, @Range(from = 1, to = 25) int day,
-                                 @NotNull PuzzleSupplier supplier, @NotNull LazyCloseable<HttpClient> lazyClient) {
+    static boolean getInputAndSolve(int year, @Range(from = 1, to = 25) int day,
+                                    @NotNull PuzzleSupplier supplier, @NotNull Supplier<HttpClient> lazyClient) {
+        boolean usedHttp = false;
         try {
             String inputPath = String.format("%s/day/%s/input", year, day);
             Path path = CACHE_PATH.resolve(inputPath);
@@ -235,6 +266,7 @@ public interface AdventOfCode {
                                                 .GET().build(),
                                      BodyHandlers.ofFile(path))
                                  .body();
+                usedHttp = true;
             }
             solvePuzzleWithInput(year, day, supplier, Files.newInputStream(path));
         } catch (Exception e) {
@@ -243,6 +275,7 @@ public interface AdventOfCode {
         } finally {
             System.out.println();
         }
+        return usedHttp;
     }
 
     static void solvePuzzleWithInput(int year, @Range(from = 1, to = 25) int day,
@@ -282,8 +315,8 @@ public interface AdventOfCode {
 
     }
 
-    static LazyCloseable<HttpClient> lazyHttpClient() {
-        return new LazyCloseable<>(HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault())::build);
+    static Supplier<HttpClient> lazyHttpClient() {
+        return Suppliers.memoize(() -> HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault()).build());
     }
 }
 
