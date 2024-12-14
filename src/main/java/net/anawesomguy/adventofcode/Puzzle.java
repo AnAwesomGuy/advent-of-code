@@ -56,15 +56,18 @@ public interface Puzzle {
         }
 
         /**
-         * @param singeLine the puzzles input, as a single line
+         * @param singleLine the puzzles input, as a single line
          */
-        void input(String singeLine) throws InvalidInputException;
+        void input(String singleLine) throws InvalidInputException;
     }
 
     interface LineStreamed extends WithBufferedReader {
         @Override
         default void input(BufferedReader input) throws UncheckedIOException, InvalidInputException {
-            try (Stream<String> lines = input.lines().onClose(() -> { try { input.close(); } catch (IOException ignore) {} })) {
+            try (Stream<String> lines = input.lines().onClose(() -> {
+                try { input.close(); }
+                catch (IOException e) { throw new UncheckedIOException(e); }
+            })) {
                 input(lines);
             }
         }
@@ -78,12 +81,12 @@ public interface Puzzle {
     /**
      * @return the puzzle answer for part one
      */
-    int solvePart1();
+    long solvePart1();
 
     /**
      * @return the puzzle answer for part two
      */
-    int solvePart2();
+    long solvePart2();
 
     interface PuzzleSupplier extends Supplier<Puzzle>, Comparable<PuzzleSupplier> {
         PuzzleSupplier EMPTY = () -> null;

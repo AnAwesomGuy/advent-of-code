@@ -16,13 +16,13 @@ public final class Day1 implements LineBased {
     public void input(String line) {
         String[] numbers = StringUtils.split(line);
         if (numbers.length != 2)
-            throw new InvalidInputException();
+            throw new InvalidInputException(line);
         leftColumn.add(Integer.parseInt(numbers[0]));
         rightColumn.add(Integer.parseInt(numbers[1]));
     }
 
     @Override
-    public int solvePart1() {
+    public long solvePart1() {
         IntList column1 = this.leftColumn;
         IntList column2 = this.rightColumn;
         int size = column1.size();
@@ -38,7 +38,7 @@ public final class Day1 implements LineBased {
     }
 
     @Override
-    public int solvePart2() {
+    public long solvePart2() {
 //        @SuppressWarnings("deprecation")
 //        Int2IntMap leftCountMap = new Int2IntOpenHashMap(
 //            this.leftColumn.stream().collect(

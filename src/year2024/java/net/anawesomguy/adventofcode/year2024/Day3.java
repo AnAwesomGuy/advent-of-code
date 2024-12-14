@@ -13,17 +13,17 @@ public final class Day3 implements Puzzle.SingleLine {
     private String input = "";
 
     @Override
-    public void input(String singeLine) throws InvalidInputException {
-        this.input = singeLine;
+    public void input(String singleLine) throws InvalidInputException {
+        this.input = singleLine;
     }
 
     @Override
-    public int solvePart1() {
+    public long solvePart1() {
         return addMulInstructions(this.input);
     }
 
     @Override
-    public int solvePart2() {
+    public long solvePart2() {
         return addMulInstructions(this.input.replaceAll("don't\\(\\)[\\s\\S]*?do\\(\\)", ""));
     }
 

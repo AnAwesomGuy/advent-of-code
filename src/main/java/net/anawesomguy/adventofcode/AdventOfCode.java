@@ -130,7 +130,7 @@ public interface AdventOfCode {
 
         long before = System.nanoTime();
         solveAllPuzzles();
-        System.out.printf("%nSolved all puzzles in %sms.", (System.nanoTime() - before) / 1e6);
+        System.out.printf("%nSolved all puzzles in %s ms.%n%n", (System.nanoTime() - before) / 1e6);
     }
 
     // static methods for getting and registering puzzles
@@ -190,8 +190,7 @@ public interface AdventOfCode {
             Arrays.sort(puzzles, NULLS_LAST);
             PUZZLES_BY_YEAR.put(year, puzzles);
         } else {
-            if (oldPuzzles.length != 25)
-                throw new AssertionError();
+            assert oldPuzzles.length == 25;
             for (int i = 0, j = 0; i < 25/*oldPuzzles.length*/; i++)
                 if (oldPuzzles[i] == null)
                     oldPuzzles[i] = puzzles[j++];
@@ -300,13 +299,13 @@ public interface AdventOfCode {
         System.out.printf("Puzzle input supplied and initiated in %.3f ms.%n", timeElapsed);
 
         long before1 = System.nanoTime();
-        int result1 = puzzle.solvePart1();
+        long result1 = puzzle.solvePart1();
         double timeElapsed1 = (System.nanoTime() - before1) / 1e6; //ms
         System.out.printf("Part one solved in %.3f ms!%n" +
                           "Result: %s%n", timeElapsed1, result1);
 
         long before2 = System.nanoTime();
-        int result2 = puzzle.solvePart2();
+        long result2 = puzzle.solvePart2();
         double timeElapsed2 = (System.nanoTime() - before2) / 1e6; //ms
         System.out.printf("Part two solved in %.3f ms!%n" +
                           "Result: %s%n" +

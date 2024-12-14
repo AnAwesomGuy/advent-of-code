@@ -16,7 +16,7 @@ public final class Day2 implements LineBased {
         String[] split = line.split(" ");
         int length = split.length;
         if (length < 2)
-            throw new InvalidInputException();
+            throw new InvalidInputException(line);
         int[] levels = new int[length];
         for (int i = 0; i < length; i++)
             levels[i] = Integer.parseInt(split[i]);
@@ -24,7 +24,7 @@ public final class Day2 implements LineBased {
     }
 
     @Override
-    public int solvePart1() {
+    public long solvePart1() {
         int result = 0;
         for (int[] report : this.reports)
             if (isReportSafe(report))
@@ -33,7 +33,7 @@ public final class Day2 implements LineBased {
     }
 
     @Override
-    public int solvePart2() {
+    public long solvePart2() {
         int result = 0;
         for (int[] report : this.reports)
             for (int i = 0, length = report.length; i < length; i++)
@@ -47,12 +47,8 @@ public final class Day2 implements LineBased {
 
     public static boolean isReportSafe(int[] report) {
         boolean ascending = false;
-        for (int i = 0, length = report.length, prev = -1; i < length; i++) {
+        for (int i = 1, length = report.length, prev = report[0]; i < length; i++) {
             int level = report[i];
-            if (i == 0) { // first iteration (sets previous and continues)
-                prev = level;
-                continue;
-            }
 
             if (prev == level)
                 return false;

@@ -35,7 +35,7 @@ public final class Day4 implements LineStreamed {
     }
 
     @Override
-    public int solvePart1() {
+    public long solvePart1() {
         int result = 0;
         XMASLetter[][] crossword = this.crossword;
         List<IntList> xIndices = this.xIndices;
@@ -66,7 +66,7 @@ public final class Day4 implements LineStreamed {
     }
 
     @Override
-    public int solvePart2() {
+    public long solvePart2() {
         int result = 0;
         XMASLetter[][] crossword = this.crossword;
         List<IntList> aIndices = this.aIndices;
