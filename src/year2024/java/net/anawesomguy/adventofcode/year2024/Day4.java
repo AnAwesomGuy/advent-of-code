@@ -2,6 +2,7 @@ package net.anawesomguy.adventofcode.year2024;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.anawesomguy.adventofcode.AdventDay;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle.LineStreamed;
 import org.jetbrains.annotations.Nullable;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+@AdventDay(day = 4)
 public final class Day4 implements LineStreamed {
     private XMASLetter[][] crossword; // 2d array of the input
     private final List<IntList> xIndices = new ArrayList<>(140);

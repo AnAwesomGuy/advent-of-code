@@ -1,12 +1,14 @@
 package net.anawesomguy.adventofcode;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Constructor;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -65,8 +67,11 @@ public interface Puzzle {
         @Override
         default void input(BufferedReader input) throws UncheckedIOException, InvalidInputException {
             try (Stream<String> lines = input.lines().onClose(() -> {
-                try { input.close(); }
-                catch (IOException e) { throw new UncheckedIOException(e); }
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             })) {
                 input(lines);
             }
@@ -81,31 +86,51 @@ public interface Puzzle {
     /**
      * @return the puzzle answer for part one
      */
+    @Range(from = 0, to = Long.MAX_VALUE)
     long solvePart1();
 
     /**
      * @return the puzzle answer for part two
      */
+    @Range(from = 0, to = Long.MAX_VALUE)
     long solvePart2();
 
-    interface PuzzleSupplier extends Supplier<Puzzle>, Comparable<PuzzleSupplier> {
-        PuzzleSupplier EMPTY = () -> null;
+    record PuzzleSupplier(int day, Supplier<Puzzle> supplier) implements Supplier<Puzzle>, Comparable<PuzzleSupplier> {
+        public static final PuzzleSupplier EMPTY = unordered(() -> null);
 
-        @Override
-        default int compareTo(@NotNull Puzzle.PuzzleSupplier o) {
-            return 0;
+        public static PuzzleSupplier unordered(Supplier<Puzzle> supplier) {
+            return new PuzzleSupplier(-1, supplier);
         }
 
-        record Simple(int day, Supplier<Puzzle> supplier) implements PuzzleSupplier {
-            @Override
-            public Puzzle get() {
-                return supplier.get();
-            }
+        public static PuzzleSupplier from(Class<? extends Puzzle> clazz) {
+            AdventDay adventDay = clazz.getAnnotation(AdventDay.class);
+            return adventDay == null ?
+                unordered(() -> instantiatePuzzle(clazz)) :
+                new PuzzleSupplier(adventDay.day(), () -> instantiatePuzzle(clazz));
+        }
 
-            @Override
-            public int compareTo(@NotNull PuzzleSupplier other) {
-                return other instanceof Simple ? Integer.compare(this.day, ((Simple)other).day) : 0;
+        static Puzzle instantiatePuzzle(Class<? extends Puzzle> clazz) {
+            try {
+                Constructor<? extends Puzzle> constructor = clazz.getDeclaredConstructor();
+                constructor.trySetAccessible();
+                return clazz.getDeclaredConstructor().newInstance();
+            } catch (NoSuchMethodException e) {
+                System.err.printf("Puzzle %s does not have a no-args constructor!%n", clazz.getName());
+                return null;
+            } catch (ReflectiveOperationException | SecurityException e) {
+                System.err.printf("Error instantiating puzzle %s!%n", clazz.getName());
+                return null;
             }
+        }
+
+        @Override
+        public Puzzle get() {
+            return supplier.get();
+        }
+
+        @Override
+        public int compareTo(@NotNull PuzzleSupplier other) {
+            return day > 0 ? Integer.compare(this.day, other.day) : 1; // unordered last
         }
     }
 }

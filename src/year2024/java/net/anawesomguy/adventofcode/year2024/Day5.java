@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
+/**
+ * Not finished (i think i forgot when i did this)
+ */
 public final class Day5 implements LineStreamed {
     private List<IntIntPair> section1;
     private List<int[]> section2;

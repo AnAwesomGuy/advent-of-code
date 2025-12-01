@@ -2,12 +2,14 @@ package net.anawesomguy.adventofcode.year2024;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.anawesomguy.adventofcode.AdventDay;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle.LineBased;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 
+@AdventDay(day = 1)
 public final class Day1 implements LineBased {
     private final IntList leftColumn = new IntArrayList(1000);
     private final IntList rightColumn = new IntArrayList(1000);

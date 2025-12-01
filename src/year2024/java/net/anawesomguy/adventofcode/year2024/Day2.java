@@ -1,5 +1,6 @@
 package net.anawesomguy.adventofcode.year2024;
 
+import net.anawesomguy.adventofcode.AdventDay;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle.LineBased;
 import org.apache.commons.lang3.ArrayUtils;
@@ -7,6 +8,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+@AdventDay(day = 2)
 public final class Day2 implements LineBased {
     private final List<int[]> reports = new ArrayList<>();
     private static final int MAX_JUMP = 3;

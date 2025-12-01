@@ -11,6 +11,7 @@ repositories {
 
 sourceSets {
     year2024
+    year2025
 }
 
 dependencies {
@@ -55,7 +56,7 @@ sourceSets.forEach {
             dependsOn jarTask
             classpath it.runtimeClasspath
             mainClass = mainClassName
-            jvmArgs '-Xmx8M'
+            jvmArgs '-Xmx12M'
             workingDir 'build'
         }
     }
