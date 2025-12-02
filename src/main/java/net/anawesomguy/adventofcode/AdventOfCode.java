@@ -405,8 +405,6 @@ public interface AdventOfCode {
                                       BodyHandlers.ofString());
             if (response.statusCode() != 200)
                 System.err.printf("Submission returned failed status code %s!%n", response.statusCode());
-            System.out.println(response.body());
-            System.out.println(response.uri());
             System.out.println("Got submission response: " +
                                    response.body()
                                            .replaceAll("(?s).*?<article>(.*?)</article>.*", "$1")
