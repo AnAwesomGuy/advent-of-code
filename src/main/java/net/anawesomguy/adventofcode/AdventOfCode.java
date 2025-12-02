@@ -11,6 +11,7 @@ import net.anawesomguy.adventofcode.Puzzle.PuzzleSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.CookieHandler;
@@ -26,7 +27,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.ServiceLoader;
@@ -116,16 +116,14 @@ public interface AdventOfCode {
     // main method
 
     static void main(String... args) {
-        Iterator<AdventOfCode> iterator = ServiceLoader.load(AdventOfCode.class).iterator();
-        while (iterator.hasNext()) {
+        // load services
+        for (AdventOfCode aoc : ServiceLoader.load(AdventOfCode.class))
             try {
-                AdventOfCode aoc = iterator.next();
                 addPuzzles(aoc.getYear(), aoc.getPuzzles());
             } catch (Exception e) {
                 System.err.println("Error loading service!");
                 e.printStackTrace();
             }
-        }
 
         long before = System.nanoTime();
         solveAllPuzzles();
@@ -138,7 +136,10 @@ public interface AdventOfCode {
     Path CACHE_PATH = Path.of(".aoc_cache");
     // DON'T CLOSE
     Supplier<HttpClient> LAZY_HTTP_CLIENT = Suppliers.memoize(
-        () -> HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault()).build());
+        () -> HttpClient.newBuilder()
+                        .cookieHandler(CookieHandler.getDefault())
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .build());
 
     @NotNull
     static PuzzleSupplier[] getPuzzles(int year) {
@@ -260,6 +261,22 @@ public interface AdventOfCode {
         return Files.newInputStream(path);
     }
 
+    static void getInputAndSolve(Class<? extends Puzzle> clazz) {
+        Class<?> calling = WALKER.getCallerClass();
+        int year;
+        AdventYear adventYear = calling.getAnnotation(AdventYear.class);
+        if (adventYear == null) {
+            AdventYear packageYear = clazz.getPackage().getAnnotation(AdventYear.class);
+            if (packageYear == null)
+                throw new NoSuchElementException(
+                    "class calling getInputAndSolve has no advent year information! annotate the class with @" + AdventYear.class.getName());
+            year = packageYear.year();
+        } else
+            year = adventYear.year();
+        PuzzleSupplier supplier = PuzzleSupplier.from(clazz);
+        getInputAndSolve(year, supplier.day(), supplier);
+    }
+
     static void getInputAndSolve(int year, @Range(from = 1, to = 25) int day, @NotNull PuzzleSupplier supplier) {
         try {
             solvePuzzleWithInput(year, day, supplier, getInput(year, day));
@@ -269,6 +286,22 @@ public interface AdventOfCode {
         } finally {
             System.out.println();
         }
+    }
+
+    static void solvePuzzleWithInput(Class<? extends Puzzle> clazz, String input) {
+        Class<?> calling = WALKER.getCallerClass();
+        int year;
+        AdventYear adventYear = calling.getAnnotation(AdventYear.class);
+        if (adventYear == null) {
+            AdventYear packageYear = clazz.getPackage().getAnnotation(AdventYear.class);
+            if (packageYear == null)
+                throw new NoSuchElementException(
+                    "class calling solveWithInput has no advent year information! annotate the class with @" + AdventYear.class.getName());
+            year = packageYear.year();
+        } else
+            year = adventYear.year();
+        PuzzleSupplier supplier = PuzzleSupplier.from(clazz);
+        solvePuzzleWithInput(year, supplier.day(), supplier, new ByteArrayInputStream(input.getBytes()));
     }
 
     static void solvePuzzleWithInput(int year, @Range(from = 1, to = 25) int day,
@@ -314,8 +347,6 @@ public interface AdventOfCode {
                               "Total time for solve: %.3f ms.%n",
                           timeElapsed2, result2, (timeElapsed + timeElapsed1 + timeElapsed2));
     }
-
-    // methods to solve and submit
 
     static void solveAndSubmit(Class<? extends Puzzle> clazz, boolean part1) {
         Class<?> calling = WALKER.getCallerClass();
@@ -367,16 +398,21 @@ public interface AdventOfCode {
             HttpResponse<String> response =
                 LAZY_HTTP_CLIENT.get()
                                 .send(HttpRequest.newBuilder(answerUri)
+                                                 .header("Content-Type", "application/x-www-form-urlencoded")
                                                  .POST(HttpRequest.BodyPublishers.ofString(
                                                      "level=" + (part1 ? 1 : 2) + "&answer=" + result))
                                                  .build(),
                                       BodyHandlers.ofString());
             if (response.statusCode() != 200)
                 System.err.printf("Submission returned failed status code %s!%n", response.statusCode());
+            System.out.println(response.body());
+            System.out.println(response.uri());
             System.out.println("Got submission response: " +
                                    response.body()
-                                           .replaceAll("(?s).*?<article[^>]*>(.*?)</article>.*", "$1")
-                                           .replaceAll("<[^>]*>", ""));
+                                           .replaceAll("(?s).*?<article>(.*?)</article>.*", "$1")
+                                           .replace("</p>", " ")
+                                           .replaceAll("<[^>]*>", "")
+                                           .replaceAll("\\s\\s+", " "));
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

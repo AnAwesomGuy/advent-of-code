@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
+import java.util.Scanner;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -35,6 +36,19 @@ public interface Puzzle {
          * @param input the puzzle input as a reader, will be closed after this method is called
          */
         void input(BufferedReader input) throws IOException, InvalidInputException;
+    }
+
+    interface WithScanner extends Puzzle {
+        default void input(InputStream input) throws IOException, InvalidInputException {
+            try (Scanner scanner = new Scanner(input)) {
+                input(scanner);
+            }
+        }
+
+        /**
+         * @param input the puzzle input as a reader, will be closed after this method is called
+         */
+        void input(Scanner input) throws IOException, InvalidInputException;
     }
 
     interface LineBased extends WithBufferedReader {
@@ -113,7 +127,7 @@ public interface Puzzle {
             try {
                 Constructor<? extends Puzzle> constructor = clazz.getDeclaredConstructor();
                 constructor.trySetAccessible();
-                return clazz.getDeclaredConstructor().newInstance();
+                return constructor.newInstance();
             } catch (NoSuchMethodException e) {
                 System.err.printf("Puzzle %s does not have a no-args constructor!%n", clazz.getName());
                 return null;
