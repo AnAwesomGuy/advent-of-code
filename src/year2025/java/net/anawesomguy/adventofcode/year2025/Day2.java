@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.regex.Pattern;
 
 @AdventDay(day = 2)
-public class Day2 implements Puzzle.SingleLine {
+public final class Day2 implements Puzzle.SingleLine {
     private LongLongPair[] ids;
 
     @Override
