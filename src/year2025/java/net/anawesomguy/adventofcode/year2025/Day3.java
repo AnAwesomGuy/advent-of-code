@@ -27,9 +27,7 @@ public final class Day3 implements Puzzle.SingleLine {
 
     public static long largestJoltage(String str, int len) {
         long result = 0;
-        int min = 0;
-        int upper = str.length() - --len;
-        for (; len >= 0; len--) {
+        for (int upper = str.length() - --len, min = 0; len >= 0; len--) {
             char max = 0;
             int maxIndex = -1;
             for (int j = min; j < upper; j++) {
