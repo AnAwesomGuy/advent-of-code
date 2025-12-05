@@ -25,6 +25,19 @@ public final class Day4 implements Puzzle.LineStreamed {
         return accessible(this.grid, false);
     }
 
+    @Override
+    public long solvePart2() {
+        long result = 0;
+        int gLen = this.grid.length;
+        boolean[][] grid = new boolean[gLen][];
+        for (int i = 0; i < gLen; i++)
+            grid[i] = this.grid[i].clone();
+        long answer;
+        while ((answer = accessible(grid, true)) > 0)
+            result += answer;
+        return result;
+    }
+
     public static long accessible(boolean[][] grid, boolean modify) {
         long result = 0;
         for (int i = 0, gLen = grid.length; i < gLen; i++) {
@@ -61,19 +74,6 @@ public final class Day4 implements Puzzle.LineStreamed {
                     }
                 }
         }
-        return result;
-    }
-
-    @Override
-    public long solvePart2() {
-        long result = 0;
-        int gLen = this.grid.length;
-        boolean[][] grid = new boolean[gLen][];
-        for (int i = 0; i < gLen; i++)
-            grid[i] = this.grid[i].clone();
-        long answer;
-        while ((answer = accessible(grid, true)) > 0)
-            result += answer;
         return result;
     }
 }

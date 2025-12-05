@@ -411,6 +411,7 @@ public interface AdventOfCode {
                                            .replace("</p>", " ")
                                            .replaceAll("<[^>]*>", "")
                                            .replaceAll("\\s\\s+", " "));
+            System.out.println();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
