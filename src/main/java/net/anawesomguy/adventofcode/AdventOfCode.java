@@ -2,7 +2,6 @@ package net.anawesomguy.adventofcode;
 
 import com.google.common.base.Suppliers;
 import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.ClassPath.ClassInfo;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
@@ -82,7 +81,7 @@ public interface AdventOfCode {
         @SuppressWarnings("unchecked")
         default Class<? extends Puzzle>[] getPuzzleClasses() {
             Class<? extends AdventOfCode> clazz = this.getClass();
-            AdventYear adventYear = this.getClass().getAnnotation(AdventYear.class);
+            AdventYear adventYear = clazz.getAnnotation(AdventYear.class);
             Class<? extends Puzzle>[] puzzles;
             if (adventYear == null) {
                 AdventYear packageYear = clazz.getPackage().getAnnotation(AdventYear.class);
@@ -96,7 +95,8 @@ public interface AdventOfCode {
                     ArrayList<Class<? extends Puzzle>> puzzlesList = new ArrayList<>();
                     String packageName = clazz.getPackageName();
                     try {
-                        for (ClassInfo info : ClassPath.from(clazz.getClassLoader()).getTopLevelClasses(packageName)) {
+                        for (ClassPath.ClassInfo info : ClassPath.from(clazz.getClassLoader())
+                                                                 .getTopLevelClasses(packageName)) {
                             Class<?> puzzleClass = info.load();
                             if (Puzzle.class.isAssignableFrom(puzzleClass))
                                 puzzlesList.add((Class<? extends Puzzle>)puzzleClass);

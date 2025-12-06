@@ -9,20 +9,13 @@ public final class AOC2025 implements AdventOfCode.Annotated {
 
     public static void main(String... args) {
         // AdventOfCode.main(args);
-        AdventOfCode.solveAndSubmit(Day5.class, false);
-        // AdventOfCode.getInputAndSolve(Day5.class);
-        // AdventOfCode.solvePuzzleWithInput(Day5.class, """
-        //     3-5
-        //     10-14
-        //     16-20
-        //     12-18
-        //
-        //     1
-        //     5
-        //     8
-        //     11
-        //     17
-        //     32
+        AdventOfCode.solveAndSubmit(Day6.class, false);
+        // AdventOfCode.getInputAndSolve(Day6.class);
+        // AdventOfCode.solvePuzzleWithInput(Day6.class, """
+        //     123 328  51 64\s
+        //      45 64  387 23\s
+        //       6 98  215 314
+        //     *   +   *   + \s
         //     """);
     }
 }

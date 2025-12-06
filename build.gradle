@@ -14,6 +14,10 @@ sourceSets {
     year2025
 }
 
+configurations {
+    yearsImplementation
+}
+
 dependencies {
     //implementation 'org.apache.commons:commons-collections4:4.5.0-M2'
     implementation 'org.jetbrains:annotations:26.0.+'
@@ -24,7 +28,7 @@ dependencies {
         exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
     }
 
-    year2024Implementation 'org.apache.commons:commons-lang3:3.17.+'
+    yearsImplementation 'org.apache.commons:commons-lang3:3.20.+'
 }
 
 def mainClassName = 'net.anawesomguy.adventofcode.AdventOfCode'
@@ -41,7 +45,9 @@ sourceSets.forEach {
         def main = sourceSets.main
         dependencies.add(it.implementationConfigurationName, main.output)
         it.compileClasspath += main.compileClasspath
+        it.compileClasspath += configurations.yearsImplementation
         it.runtimeClasspath += main.runtimeClasspath
+        it.runtimeClasspath += configurations.yearsImplementation
 
         def jarTask = tasks.register(it.jarTaskName, Jar) { task ->
             group 'build'
