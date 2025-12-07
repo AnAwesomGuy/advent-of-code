@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.util.Scanner;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -146,5 +147,15 @@ public interface Puzzle {
         public int compareTo(@NotNull PuzzleSupplier other) {
             return day > 0 ? Integer.compare(this.day, other.day) : 1; // unordered last
         }
+    }
+
+    static Function<String, boolean[]> toBooleanArrayMapper(char trueChar) {
+        return s -> {
+            int len = s.length();
+            boolean[] b = new boolean[len];
+            while (len --> 0)
+                b[len] = s.charAt(len) == trueChar;
+            return b;
+        };
     }
 }

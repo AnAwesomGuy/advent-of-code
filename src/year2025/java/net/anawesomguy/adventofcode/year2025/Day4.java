@@ -12,12 +12,7 @@ public final class Day4 implements Puzzle.LineStreamed {
 
     @Override
     public void input(Stream<String> stream) throws InvalidInputException {
-        grid = stream.map(s -> {
-            boolean[] c = new boolean[s.length()];
-            for (int i = 0; i < c.length; i++)
-                c[i] = s.charAt(i) == '@';
-            return c;
-        }).toArray(boolean[][]::new);
+        grid = stream.map(Puzzle.toBooleanArrayMapper('@')).toArray(boolean[][]::new);
     }
 
     @Override
