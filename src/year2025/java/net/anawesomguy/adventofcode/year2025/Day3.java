@@ -4,8 +4,6 @@ import net.anawesomguy.adventofcode.AdventDay;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle;
 
-import java.util.Arrays;
-
 @AdventDay(day = 3)
 public final class Day3 implements Puzzle.SingleLine {
     private String[] lines;
@@ -17,12 +15,18 @@ public final class Day3 implements Puzzle.SingleLine {
 
     @Override
     public long solvePart1() {
-        return Arrays.stream(lines).mapToLong(str -> largestJoltage(str, 2)).sum();
+        long sum = 0L;
+        for (String str : lines)
+            sum += largestJoltage(str, 2);
+        return sum;
     }
 
     @Override
     public long solvePart2() {
-        return Arrays.stream(lines).mapToLong(str -> largestJoltage(str, 12)).sum();
+        long sum = 0L;
+        for (String str : lines)
+            sum += largestJoltage(str, 12);
+        return sum;
     }
 
     public static long largestJoltage(String str, int len) {

@@ -22,32 +22,34 @@ public final class Day2 implements Puzzle.SingleLine {
 
     @Override
     public long solvePart1() {
-        return Arrays.stream(ids)
-                     .mapToLong(p -> {
-                         long l = 0;
-                         for (long i1 = p.firstLong(), i2 = p.secondLong(); i1 <= i2; i1++) {
-                             int digits = ((int)Math.log10(i1) + 1) / 2;
-                             int tenP = 10;
-                             while (digits-- > 0) {
-                                 if (i1 % tenP == i1 / tenP)
-                                     l += i1;
-                                 tenP *= 10;
-                             }
-                         }
-                         return l;
-                     }).sum();
+        long sum = 0L;
+        for (LongLongPair id : ids) {
+            long l = 0;
+            for (long i1 = id.firstLong(), i2 = id.secondLong(); i1 <= i2; i1++) {
+                int digits = ((int)Math.log10(i1) + 1) / 2;
+                int tenP = 10;
+                while (digits-- > 0) {
+                    if (i1 % tenP == i1 / tenP)
+                        l += i1;
+                    tenP *= 10;
+                }
+            }
+            sum += l;
+        }
+        return sum;
     }
 
     @Override
     public long solvePart2() {
         Pattern pattern = Pattern.compile("(\\d+)\\1+");
-        return Arrays.stream(ids)
-                     .mapToLong(p -> {
-                         long l = 0;
-                         for (long i1 = p.firstLong(), i2 = p.secondLong(); i1 <= i2; i1++)
-                             if (pattern.matcher(Long.toUnsignedString(i1)).matches())
-                                 l += i1;
-                         return l;
-                     }).sum();
+        long sum = 0L;
+        for (LongLongPair id : ids) {
+            long l = 0;
+            for (long i1 = id.firstLong(), i2 = id.secondLong(); i1 <= i2; i1++)
+                if (pattern.matcher(Long.toUnsignedString(i1)).matches())
+                    l += i1;
+            sum += l;
+        }
+        return sum;
     }
 }

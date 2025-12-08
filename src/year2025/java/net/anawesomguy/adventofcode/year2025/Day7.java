@@ -5,7 +5,6 @@ import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @AdventDay(day = 7)
@@ -22,8 +21,8 @@ public final class Day7 implements Puzzle.SingleLine {
             String s = lines[i];
             int len = s.length();
             boolean[] b = new boolean[len];
-            for (int j = 0; j < len; j++)
-                b[j] = s.charAt(j) == '^';
+            while (len --> 0)
+                b[len] = s.charAt(len) == '^';
             list.add(b);
         }
         splittersMap = list.toArray(new boolean[0][]);
@@ -35,7 +34,7 @@ public final class Day7 implements Puzzle.SingleLine {
         // iterate over each row and iterate over each position in the row
         // if that position has a splitter and also a beam then it removes the beam and sets it to the left and right
         // each time a splitter is encountered where a beam also is, the result is incremented
-        long result = 0;
+        long result = 0L;
         boolean[] beams = new boolean[splittersMap[0].length]; // row of all the beams
         beams[startingCol] = true; // beam at the starting column
         for (boolean[] splitters : splittersMap) // iterate each row
@@ -61,6 +60,9 @@ public final class Day7 implements Puzzle.SingleLine {
                     beams[i - 1] += beams[i];
                     beams[i] = 0;
                 }
-        return Arrays.stream(beams).sum();
+        long sum = 0L;
+        for (long beam : beams)
+            sum += beam;
+        return sum;
     }
 }

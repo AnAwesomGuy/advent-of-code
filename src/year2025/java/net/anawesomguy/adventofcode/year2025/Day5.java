@@ -29,16 +29,12 @@ public final class Day5 implements Puzzle.SingleLine {
         long result = 0;
         for (long i : available) {
             for (var pair : ranges)
-                if (matches(pair, i)) {
+                if (pair.firstLong() <= i && pair.secondLong() >= i) {
                     result++;
                     break;
                 }
         }
         return result;
-    }
-
-    public static boolean matches(LongLongPair range, long i) {
-        return range.firstLong() <= i && range.secondLong() >= i;
     }
 
     @Override
