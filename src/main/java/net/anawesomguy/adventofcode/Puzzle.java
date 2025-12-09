@@ -121,7 +121,7 @@ public interface Puzzle {
             AdventDay adventDay = clazz.getAnnotation(AdventDay.class);
             return adventDay == null ?
                 unordered(() -> instantiatePuzzle(clazz)) :
-                new PuzzleSupplier(adventDay.day(), () -> instantiatePuzzle(clazz));
+                new PuzzleSupplier(adventDay.day(), adventDay.exclude() ? () -> null : () -> instantiatePuzzle(clazz));
         }
 
         static Puzzle instantiatePuzzle(Class<? extends Puzzle> clazz) {

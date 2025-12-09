@@ -14,4 +14,6 @@ import java.lang.annotation.Target;
 public @interface AdventDay {
     @Range(from = 1, to = 25)
     int day();
+
+    boolean exclude() default false;
 }

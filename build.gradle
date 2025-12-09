@@ -62,7 +62,7 @@ sourceSets.forEach {
             dependsOn jarTask
             classpath it.runtimeClasspath
             mainClass = mainClassName
-            jvmArgs '-Xmx12M'
+            jvmArgs '-Xmx32M'
             workingDir 'build'
         }
     }
