@@ -306,7 +306,7 @@ public interface AdventOfCode {
 
     static void solvePuzzleWithInput(int year, @Range(from = 1, to = 25) int day,
                                      @NotNull PuzzleSupplier supplier, @NotNull InputStream in) {
-        System.out.printf("Solving: Day %s, Year %s.%n", day, year);
+        System.out.printf("Solving: day %s, year %s.%n", day, year);
 
         long before = System.nanoTime();
         Puzzle puzzle = supplier.get();
@@ -328,7 +328,7 @@ public interface AdventOfCode {
         long before1 = System.nanoTime();
         long result1 = puzzle.solvePart1();
         if (result1 < 0) {
-            System.err.printf("Got negative solution %s for part one!", result1);
+            System.err.printf("Got negative solution %s for part one!%n", result1);
             return;
         }
         double timeElapsed1 = (System.nanoTime() - before1) / 1e6; // ms
@@ -339,7 +339,7 @@ public interface AdventOfCode {
         long result2 = puzzle.solvePart2();
         double timeElapsed2 = (System.nanoTime() - before2) / 1e6; // ms
         if (result2 < 0) {
-            System.err.printf("Got negative solution %s for part two!", result2);
+            System.err.printf("Got negative solution %s for part two!%n", result2);
             return;
         }
         System.out.printf("Part two solved in %.3f ms!%n" +
@@ -366,7 +366,7 @@ public interface AdventOfCode {
     static void solveAndSubmit(int year, PuzzleSupplier supplier, boolean part1) {
         int day = supplier.day();
         String partName = part1 ? "one" : "two";
-        System.out.printf("Solving and submitting: Day %s Part %s, Year %s.%n", day, year, partName);
+        System.out.printf("Solving and submitting: day %s part %s, year %s.%n", day, partName, year);
 
         long before = System.nanoTime();
         Puzzle puzzle = supplier.get();

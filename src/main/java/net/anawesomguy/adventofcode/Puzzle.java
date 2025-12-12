@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.util.Scanner;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -157,5 +158,21 @@ public interface Puzzle {
                 b[len] = s.charAt(len) == trueChar;
             return b;
         };
+    }
+
+    static int[] mapToInts(String[] s) {
+        int n = s.length;
+        int[] i = new int[n];
+        while (n-- > 0)
+            i[n] = Integer.parseInt(s[n]);
+        return i;
+    }
+
+    static <T> T[] mapTo(String[] s, Function<String, T> mapper, IntFunction<T[]> arrayFactory) {
+        int n = s.length;
+        T[] t = arrayFactory.apply(n);
+        while (n-- > 0)
+            t[n] = mapper.apply(s[n]);
+        return t;
     }
 }
