@@ -121,7 +121,12 @@ public final class Day10 implements Puzzle.LineStreamed {
                     int i = 0;
                     char buttonC = button;
                     do {
-                        short targetJoltage = joltagesTarget[i], joltage = (joltagesCopy[i++] += (short)(buttonC >>> 15 & 1)); // 0 or 1
+                        if ((buttonC >>> 15 & 1) == 0) {
+                            i++;
+                            continue;
+                        }
+                        short targetJoltage = joltagesTarget[i];
+                        short joltage = ++joltagesCopy[i++]; // 0 or 1
                         if (joltage > targetJoltage)
                             continue outer;
                         valid &= joltage == targetJoltage;

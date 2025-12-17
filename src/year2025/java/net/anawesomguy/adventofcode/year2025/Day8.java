@@ -8,23 +8,20 @@ import it.unimi.dsi.fastutil.longs.LongLongImmutablePair;
 import it.unimi.dsi.fastutil.longs.LongLongPair;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import net.anawesomguy.adventofcode.AdventDay;
 import net.anawesomguy.adventofcode.InvalidInputException;
 import net.anawesomguy.adventofcode.Puzzle;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-/**
- * DOESN'T WORK!!!!!
- */
 @AdventDay(day = 8)
 public final class Day8 implements Puzzle.LineStreamed {
     public static final Hash.Strategy<Object> IDENTITY_HASH = new Hash.Strategy<>() {
@@ -46,26 +43,23 @@ public final class Day8 implements Puzzle.LineStreamed {
     public void input(Stream<String> lines) throws InvalidInputException {
         long[] junctionBoxes = lines.mapToLong(Day8::posFromString).toArray();
         int len = this.junctionCount = junctionBoxes.length;
-        Object2LongMap<LongLongPair> distances = new Object2LongOpenHashMap<>(len * (len - 1) / 2, 0.999F);
+        List<LongLongPair> distances = new ArrayList<>(len * (len - 1) / 2);
         for (int i = 0; i < len; i++) {
             long junctionPos = junctionBoxes[i];
             for (int j = i + 1; j < len; j++) {
                 long otherJunction = junctionBoxes[j];
-                distances.put(new LongLongImmutablePair(junctionPos, otherJunction),
-                              distSqr(junctionPos, otherJunction));
+                distances.add(new LongLongImmutablePair(junctionPos, otherJunction));
             }
         }
-        pairsByDistance = distances.keySet().toArray(new LongLongPair[0]);
-        Arrays.sort(pairsByDistance, Comparator.comparingLong(distances::getLong));
+        pairsByDistance = distances.toArray(new LongLongPair[0]);
+        Arrays.sort(pairsByDistance, Comparator.comparingLong(pair -> distSqr(pair.leftLong(), pair.rightLong())));
     }
 
     @Override
     public long solvePart1() {
         Long2ObjectMap<LongSet> circuits = new Long2ObjectOpenHashMap<>(1000, 0.99F);
-        long limit = 1000;
-        for (LongLongPair pair : pairsByDistance) {
-            if (limit-- == 0)
-                break;
+        for (int i = 0, min = Math.min(pairsByDistance.length, 1000); i < min; i++) {
+            LongLongPair pair = pairsByDistance[i];
             Supplier<@NotNull LongSet> newSet = Suppliers.memoize(() -> new LongOpenHashSet(2, 0.95F));
             var circuitLeft = circuits.get(pair.leftLong());
             if (circuitLeft == null) {
@@ -94,7 +88,7 @@ public final class Day8 implements Puzzle.LineStreamed {
         }
 
         int first = 1, second = 1, third = 1;
-        for (LongSet set : new ObjectOpenCustomHashSet<>(circuits.values(), IDENTITY_HASH)) {
+        for (LongSet set : new ObjectOpenCustomHashSet<>(circuits.values(), 0.99F, IDENTITY_HASH)) {
             int size = set.size();
             if (size > first) {
                 third = second;
@@ -147,17 +141,19 @@ public final class Day8 implements Puzzle.LineStreamed {
                 uniqueCircuits.remove(circuitLeft);
             }
             if (uniqueCircuits.size() == 1 && uniqueCircuits.iterator().next().size() == junctionCount)
-                return (long)getX(pair.leftLong()) * getX(pair.rightLong());
+                return getX(pair.leftLong()) * getX(pair.rightLong());
         }
         throw new InvalidInputException();
     }
 
     public static long posFromString(String s) {
         String[] split = s.split(",");
-        return ((long)Integer.parseInt(split[0]) << 40) | ((long)Integer.parseInt(
-            split[1]) << 20) | (long)Integer.parseInt(split[2]);
+        return ((long)Integer.parseInt(split[0]) << 40) |
+            ((long)Integer.parseInt(split[1]) << 20) |
+            (long)Integer.parseInt(split[2]);
     }
 
+    // 20 bit unsigned integers
     public static long distSqr(long pos1, long pos2) {
         long dx = getX(pos1) - getX(pos2);
         long dy = (pos1 >> 20 & 0xFFFFF) - (pos2 >> 20 & 0xFFFFF);
@@ -165,11 +161,11 @@ public final class Day8 implements Puzzle.LineStreamed {
         return dx * dx + dy * dy + dz * dz;
     }
 
-    public static int getX(long pos) {
-        return (int)(pos >> 40);
+    public static long getX(long pos) {
+        return pos >> 40;
     }
 
     public static String posToString(long pos) {
-        return (pos >> 40) + "," + (pos >> 20 & 0xFFFFF) + "," + (pos & 0xFFFFF);
+        return getX(pos) + "," + (pos >> 20 & 0xFFFFF) + "," + (pos & 0xFFFFF);
     }
 }
